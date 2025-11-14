@@ -1,4 +1,4 @@
-name: Deploy to WordPress FTP
+name: Deploy to WordPress
 
 on:
   push:
@@ -10,7 +10,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy WordPress files to FTP
 
     steps:
     - name: 🔄 Checkout code
@@ -21,10 +20,10 @@ jobs:
     - name: 📤 FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@4.3.4
       with:
-        server: studiogo2.kylos.pl
-        username: tort
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /home/studiog2/domains/torty.studiogo2.kylos.pl/public_html/
+        server-dir: ${{ secrets.FTP_SERVER_DIR }}
 
         # Wgrywaj tylko zmienione pliki
         exclude: |
@@ -35,6 +34,7 @@ jobs:
           **/.DS_Store
           **/README.md
           **/upload-to-ftp.*
+          **/.github/**
 
         # Logi
         log-level: verbose

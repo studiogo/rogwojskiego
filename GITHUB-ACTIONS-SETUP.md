@@ -17,7 +17,7 @@
 
 #### Sekret 2: FTP_USERNAME
 - **Name:** `FTP_USERNAME`
-- **Secret:** `tort`
+- **Secret:** `tort@studiogo2.kylos.pl`
 - Kliknij **Add secret**
 
 #### Sekret 3: FTP_PASSWORD

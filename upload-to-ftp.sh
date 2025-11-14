@@ -2,7 +2,7 @@
 # Skrypt do wgrania modułu cen na serwer FTP
 
 FTP_HOST="studiogo2.kylos.pl"
-FTP_USER="tort"
+FTP_USER="tort@studiogo2.kylos.pl"
 FTP_PASS="VWQtABWMCvYpue2hxWQ3"
 FTP_PATH="/home/studiog2/domains/torty.studiogo2.kylos.pl/public_html"
 

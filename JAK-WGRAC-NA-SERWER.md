@@ -64,7 +64,7 @@ Jeśli wolisz tradycyjnie:
 
 ### Dane FTP:
 - **Host:** studiogo2.kylos.pl
-- **Login:** tort
+- **Login:** tort@studiogo2.kylos.pl
 - **Hasło:** VWQtABWMCvYpue2hxWQ3
 - **Port:** 21 (FTP) lub 22 (SFTP)
 - **Ścieżka:** /home/studiog2/domains/torty.studiogo2.kylos.pl/public_html

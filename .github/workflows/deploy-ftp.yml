@@ -1,0 +1,45 @@
+name: Deploy to WordPress FTP
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Pozwala na ręczne uruchomienie
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy WordPress files to FTP
+
+    steps:
+    - name: 🔄 Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+
+    - name: 📤 FTP Deploy
+      uses: SamKirkland/FTP-Deploy-Action@4.3.4
+      with:
+        server: studiogo2.kylos.pl
+        username: tort
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: /home/studiog2/domains/torty.studiogo2.kylos.pl/public_html/
+
+        # Wgrywaj tylko zmienione pliki
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.vscode/**
+          **/.DS_Store
+          **/README.md
+          **/upload-to-ftp.*
+
+        # Logi
+        log-level: verbose
+
+    - name: ✅ Deployment completed
+      run: |
+        echo "✅ Pliki WordPress zostały wgrane na serwer!"
+        echo "🌐 Sprawdź stronę: https://torty.studiogo2.kylos.pl"

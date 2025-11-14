@@ -37,7 +37,7 @@ jobs:
           **/.github/**
         log-level: verbose
         security: loose  # Mniej restrykcyjne sprawdzanie certyfikatu
-        timeout: 300000  # 5 minut timeout
+        timeout: 6300000  # 5 minut timeout
     
     - name: ✅ Deployment completed
       if: success()

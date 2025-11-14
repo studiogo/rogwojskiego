@@ -13,7 +13,7 @@ jobs:
     
     steps:
     - name: 🔄 Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 2
     
@@ -23,6 +23,8 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
+        protocol: ftps  # Spróbuj najpierw FTPS
+        port: 21
         server-dir: /
         exclude: |
           **/.git*
@@ -34,7 +36,8 @@ jobs:
           **/upload-to-ftp.*
           **/.github/**
         log-level: verbose
-        dry-run: false
+        security: loose  # Mniej restrykcyjne sprawdzanie certyfikatu
+        timeout: 300000  # 5 minut timeout
     
     - name: ✅ Deployment completed
       if: success()
@@ -45,4 +48,4 @@ jobs:
     - name: ❌ Deployment failed
       if: failure()
       run: |
-        echo "❌ Coś poszło nie tak. Sprawdź logi powyżej."
+        echo "❌ Deployment nie powiódł się. Sprawdź logi powyżej."

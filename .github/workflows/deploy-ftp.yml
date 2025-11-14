@@ -5,26 +5,25 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch:  # Pozwala na ręczne uruchomienie
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: 🔄 Checkout code
       uses: actions/checkout@v3
       with:
         fetch-depth: 2
-
+    
     - name: 📤 FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@4.3.4
       with:
-        server: studiogo2.kylos.pl
-        username: tort@studiogo2.kylos.pl
-        password: VWQtABWMCvYpue2hxWQ3
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
         server-dir: /
-        # Wgrywaj tylko zmienione pliki
         exclude: |
           **/.git*
           **/.git*/**
@@ -34,11 +33,16 @@ jobs:
           **/README.md
           **/upload-to-ftp.*
           **/.github/**
-
-        # Logi
         log-level: verbose
-
+        dry-run: false
+    
     - name: ✅ Deployment completed
+      if: success()
       run: |
         echo "✅ Pliki WordPress zostały wgrane na serwer!"
         echo "🌐 Sprawdź stronę: https://torty.studiogo2.kylos.pl"
+    
+    - name: ❌ Deployment failed
+      if: failure()
+      run: |
+        echo "❌ Coś poszło nie tak. Sprawdź logi powyżej."

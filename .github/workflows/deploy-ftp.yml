@@ -24,6 +24,8 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         dangerous-clean-slate: false  # NIE usuwaj wszystkiego
+        dry-run: false
+        dangerous-clean-slate: false  # ❗ WAŻNE - nie resetuj historii
         protocol: ftps  # Spróbuj najpierw FTPS
         port: 21
         server-dir: /

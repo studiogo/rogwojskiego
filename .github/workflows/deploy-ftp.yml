@@ -1,0 +1,45 @@
+name: Deploy to WordPress
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Pozwala na ręczne uruchomienie
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🔄 Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+
+    - name: 📤 FTP Deploy
+      uses: SamKirkland/FTP-Deploy-Action@4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: ${{ secrets.FTP_SERVER_DIR }}
+
+        # Wgrywaj tylko zmienione pliki
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.vscode/**
+          **/.DS_Store
+          **/README.md
+          **/upload-to-ftp.*
+          **/.github/**
+
+        # Logi
+        log-level: verbose
+
+    - name: ✅ Deployment completed
+      run: |
+        echo "✅ Pliki WordPress zostały wgrane na serwer!"
+        echo "🌐 Sprawdź stronę: https://torty.studiogo2.kylos.pl"

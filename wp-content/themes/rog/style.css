@@ -1060,3 +1060,107 @@ div.wpcf7-mail-sent-ok {
 	text-align:center;
 	font-size:25px;
 }
+
+/* ============================================
+   MODUŁ CEN TORTÓW - Style
+   ============================================ */
+
+/* Cena na stronie tortu */
+.product-price {
+	margin: 20px 0;
+	padding: 15px 20px;
+	background: linear-gradient(135deg, #f8e8f0 0%, #fdf5f8 100%);
+	border-left: 4px solid #e16ca1;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.product-price .price-label {
+	display: inline-block;
+	font-size: 16px;
+	font-weight: 600;
+	color: #6b4231;
+	margin-right: 10px;
+}
+
+.product-price .price-value {
+	display: inline-block;
+	font-size: 28px;
+	font-weight: bold;
+	color: #e16ca1;
+	font-family: 'League Spartan', sans-serif;
+}
+
+/* Pola w formularzu */
+.cake-portion-selector,
+.cake-price-display {
+	margin-bottom: 20px;
+}
+
+.cake-portion-selector label,
+.cake-price-display label {
+	display: block;
+	font-weight: 600;
+	color: #6b4231;
+	margin-bottom: 8px;
+	font-size: 14px;
+}
+
+.cake-portion-selector .required {
+	color: #e16ca1;
+	font-weight: bold;
+}
+
+#cake-portion-size {
+	width: 100%;
+	padding: 12px 15px;
+	border: 2px solid #e8d4de;
+	border-radius: 4px;
+	font-size: 15px;
+	color: #6b4231;
+	background-color: #fff;
+	transition: all 0.3s ease;
+}
+
+#cake-portion-size:focus {
+	border-color: #e16ca1;
+	box-shadow: 0 0 0 3px rgba(225, 108, 161, 0.1);
+}
+
+#cake-portion-size option {
+	padding: 10px;
+}
+
+#cake-final-price {
+	width: 100%;
+	padding: 12px 15px;
+	border: 2px solid #e8d4de;
+	border-radius: 4px;
+	font-size: 18px;
+	font-weight: bold;
+	color: #e16ca1;
+	background-color: #f8f8f8;
+	cursor: not-allowed;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+	.product-price {
+		padding: 12px 15px;
+	}
+
+	.product-price .price-label {
+		display: block;
+		margin-bottom: 5px;
+		font-size: 14px;
+	}
+
+	.product-price .price-value {
+		font-size: 24px;
+	}
+
+	#cake-portion-size,
+	#cake-final-price {
+		font-size: 14px;
+	}
+}

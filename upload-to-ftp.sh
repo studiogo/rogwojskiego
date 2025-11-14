@@ -4,7 +4,7 @@
 FTP_HOST="studiogo2.kylos.pl"
 FTP_USER="tort@studiogo2.kylos.pl"
 FTP_PASS="VWQtABWMCvYpue2hxWQ3"
-FTP_PATH="/home/studiog2/domains/torty.studiogo2.kylos.pl/public_html"
+FTP_PATH=""  # Pusta - użyj relatywnej ścieżki
 
 echo "🚀 Wgrywanie modułu cen tortów na serwer..."
 

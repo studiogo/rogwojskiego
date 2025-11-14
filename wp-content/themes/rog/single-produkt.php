@@ -15,18 +15,27 @@ $image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'full'
             <div class="product-category">Kategoria: <a href="<?php echo esc_url( get_category_link( $category[0]->term_id ) );?>"><?php echo $category[0]->cat_name;?></a></div>
             <h3><?php the_field('numer_tortu');?></h3>
             <?php the_content();?>
+            <?php
+            // Wyświetlanie ceny tortu
+            $base_price = get_cake_base_price(get_the_ID());
+            if( $base_price ): ?>
+              <div class="product-price">
+                <span class="price-label">Cena:</span>
+                <span class="price-value">Od <?php echo number_format($base_price, 0, ',', ' '); ?> zł</span>
+              </div>
+            <?php endif; ?>
             <div class="product-tags">
               <?php the_tags();?>
             </div>
             <div class="product-share">
               <input id="copy" value="<?php the_permalink();?>">
-				
-              <div class="fb-like" data-href="<?php the_permalink();?>" data-width="" data-layout="button_count" data-action="like" data-size="small" data-share="true"></div> 
+
+              <div class="fb-like" data-href="<?php the_permalink();?>" data-width="" data-layout="button_count" data-action="like" data-size="small" data-share="true"></div>
               <!--
-              <a href="fb-messenger://share/?link=<?php the_permalink();?>"><i class="fab fa-facebook-messenger"></i></a> 
-              <a href="#" class="social-share"><i class="fal fa-share-alt"></i> udostępnij</a> 
+              <a href="fb-messenger://share/?link=<?php the_permalink();?>"><i class="fab fa-facebook-messenger"></i></a>
+              <a href="#" class="social-share"><i class="fal fa-share-alt"></i> udostępnij</a>
               -->
-              <a href="" class="social-send"><i class="fas fa-share-square"></i> wyślij</a> 
+              <a href="" class="social-send"><i class="fas fa-share-square"></i> wyślij</a>
               <a href="#" class="btn-copy" data-clipboard-text="<?php the_permalink();?>"><i class="far fa-link"></i> skopiuj link</a>
             </div>
             <div class="share">
@@ -34,9 +43,12 @@ $image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'full'
             </div>
             <div class="product-action">
               <span>Też chcę taki tort!</span>
-               <a class="button rezerwacjaBtn" href="#modalRezerwacja">
+               <a class="button rezerwacjaBtn" href="#modalRezerwacja"
+                  data-cake-name="<?php echo esc_attr(get_the_title()); ?>"
+                  data-base-price="<?php echo esc_attr($base_price ? $base_price : 0); ?>"
+                  data-has-pricing="<?php echo esc_attr($base_price ? '1' : '0'); ?>">
                    <div class="btn-czytaj-top-txt btn-zamow-txt">
-                        Zapytaj o cenę
+                        <?php echo $base_price ? 'Zamów teraz' : 'Zapytaj o cenę'; ?>
                    </div>
                </a>
             </div>

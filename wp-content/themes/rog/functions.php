@@ -4,6 +4,7 @@
 define('THEME_PATH', get_template_directory_uri());
 
 require_once('bs4navwalker.php');
+require_once('acf-fields-cake-pricing.php');
 
 add_theme_support( 'automatic-feed-links' );
 add_theme_support( 'post-thumbnails' );
@@ -139,12 +140,63 @@ function get_product_by_cat(){
 add_action('wp_ajax_get_product_by_cat', 'get_product_by_cat');
 add_action('wp_ajax_nopriv_get_product_by_cat', 'get_product_by_cat'); // not really needed
 
+// AJAX endpoint dla pobierania danych o cenach tortu
+function get_cake_pricing_data() {
+	if ( isset($_REQUEST['post_id']) ) {
+		$post_id = intval($_REQUEST['post_id']);
+
+		$has_pricing = get_field('enable_pricing', $post_id);
+
+		if ( !$has_pricing ) {
+			echo json_encode(array(
+				'has_pricing' => false,
+			));
+			wp_die();
+		}
+
+		$price_mode = get_field('price_mode', $post_id);
+		$portions = get_portion_sizes();
+		$all_prices = get_all_cake_prices($post_id);
+
+		echo json_encode(array(
+			'has_pricing' => true,
+			'price_mode' => $price_mode,
+			'portions' => $portions,
+			'prices' => $all_prices,
+		));
+		wp_die();
+	}
+}
+
+add_action('wp_ajax_get_cake_pricing_data', 'get_cake_pricing_data');
+add_action('wp_ajax_nopriv_get_cake_pricing_data', 'get_cake_pricing_data');
+
 add_action('wp_head', 'myplugin_ajaxurl');
 function myplugin_ajaxurl() {
 	echo '<script type="text/javascript">
 		   var ajaxurl = "' . admin_url('admin-ajax.php') . '";
 		 </script>';
 }
+
+// Enqueue skryptu dla modułu cen tortów
+function enqueue_cake_pricing_script() {
+	if( is_singular('produkt') ) {
+		wp_enqueue_script(
+			'cake-pricing',
+			get_template_directory_uri() . '/js/cake-pricing.js',
+			array('jquery'),
+			'1.0.0',
+			true
+		);
+
+		// Przekazanie danych do JS
+		wp_localize_script('cake-pricing', 'cakePricingData', array(
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			'postId' => get_the_ID(),
+		));
+	}
+}
+add_action('wp_enqueue_scripts', 'enqueue_cake_pricing_script');
 
 // wyszukiwanie po tytule
 
@@ -216,9 +268,160 @@ for ($i=1; $i <= $pages; $i++)
 }
 }
 if ($paged < $pages && $showitems < $pages) echo "<a href=\"".get_pagenum_link($paged + 1)."\" class='pagination_next'>następna &rsaquo;</a>";
-if($paged < $pages-1 && $paged+$range-1 < $pages && $showitems < $pages) echo "<a href='".get_pagenum_link($pages)."'>&raquo;</a>";  
+if($paged < $pages-1 && $paged+$range-1 < $pages && $showitems < $pages) echo "<a href='".get_pagenum_link($pages)."'>&raquo;</a>";
 echo "</div>\n";
 }
+}
+
+// ============================================
+// MODUŁ CEN DLA TORTÓW
+// ============================================
+
+// ACF Options Page - Ustawienia wielkości tortów
+if( function_exists('acf_add_options_page') ) {
+	acf_add_options_page(array(
+		'page_title' 	=> 'Ustawienia cen tortów',
+		'menu_title'	=> 'Ceny tortów',
+		'menu_slug' 	=> 'cake-pricing-settings',
+		'capability'	=> 'edit_posts',
+		'redirect'		=> false,
+		'position'      => '3.4',
+		'icon_url'      => 'dashicons-tag',
+	));
+}
+
+/**
+ * Pobiera wszystkie dostępne wielkości porcji z globalnych ustawień ACF
+ * @return array Tablica z wielkościami i dopłatami
+ */
+function get_portion_sizes() {
+	$portions = array();
+
+	if( have_rows('portion_sizes', 'option') ) {
+		while( have_rows('portion_sizes', 'option') ) {
+			the_row();
+			$portions[] = array(
+				'portions' => get_sub_field('portions'),
+				'surcharge' => get_sub_field('surcharge'),
+			);
+		}
+	}
+
+	return $portions;
+}
+
+/**
+ * Pobiera cenę bazową tortu
+ * @param int $post_id ID posta produktu
+ * @return int|false Cena bazowa lub false jeśli nie ustawiona
+ */
+function get_cake_base_price($post_id) {
+	$has_price = get_field('enable_pricing', $post_id);
+
+	if( !$has_price ) {
+		return false;
+	}
+
+	$price_mode = get_field('price_mode', $post_id);
+
+	// Tryb automatyczny
+	if( $price_mode === 'automatic' ) {
+		return get_field('base_price', $post_id);
+	}
+
+	// Tryb ręczny - zwróć najniższą cenę
+	if( $price_mode === 'manual' ) {
+		$manual_prices = get_field('manual_prices', $post_id);
+		if( $manual_prices && is_array($manual_prices) ) {
+			$prices = array_column($manual_prices, 'price');
+			return min($prices);
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Kalkuluje finalną cenę tortu
+ * @param int $post_id ID posta produktu
+ * @param int $portion_index Indeks wielkości porcji
+ * @return int|false Finalna cena lub false
+ */
+function calculate_final_price($post_id, $portion_index) {
+	$price_mode = get_field('price_mode', $post_id);
+
+	// Tryb automatyczny: cena bazowa + dopłata
+	if( $price_mode === 'automatic' ) {
+		$base_price = get_field('base_price', $post_id);
+		$portions = get_portion_sizes();
+
+		if( isset($portions[$portion_index]) ) {
+			$surcharge = $portions[$portion_index]['surcharge'];
+			return $base_price + $surcharge;
+		}
+	}
+
+	// Tryb ręczny: zwróć ustawioną cenę
+	if( $price_mode === 'manual' ) {
+		$manual_prices = get_field('manual_prices', $post_id);
+		if( $manual_prices && isset($manual_prices[$portion_index]) ) {
+			return $manual_prices[$portion_index]['price'];
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Pobiera wszystkie ceny dla tortu (wszystkie wielkości)
+ * @param int $post_id ID posta produktu
+ * @return array Tablica z cenami dla wszystkich wielkości
+ */
+function get_all_cake_prices($post_id) {
+	$prices = array();
+	$price_mode = get_field('price_mode', $post_id);
+	$portions = get_portion_sizes();
+
+	if( $price_mode === 'automatic' ) {
+		$base_price = get_field('base_price', $post_id);
+
+		foreach( $portions as $index => $portion ) {
+			$prices[] = array(
+				'portions' => $portion['portions'],
+				'price' => $base_price + $portion['surcharge'],
+			);
+		}
+	} elseif( $price_mode === 'manual' ) {
+		$manual_prices = get_field('manual_prices', $post_id);
+
+		if( $manual_prices && is_array($manual_prices) ) {
+			foreach( $manual_prices as $index => $manual_price ) {
+				$prices[] = array(
+					'portions' => $portions[$index]['portions'] ?? '',
+					'price' => $manual_price['price'] ?? 0,
+				);
+			}
+		}
+	}
+
+	return $prices;
+}
+
+/**
+ * Generuje opcje grup cenowych (120, 130, 140... 320 zł)
+ * @param int $start Cena początkowa
+ * @param int $end Cena końcowa
+ * @param int $step Krok (co ile zł)
+ * @return array Tablica z opcjami cen
+ */
+function generate_price_groups($start = 120, $end = 320, $step = 10) {
+	$groups = array();
+
+	for( $i = $start; $i <= $end; $i += $step ) {
+		$groups[$i] = $i . ' zł';
+	}
+
+	return $groups;
 }
 
 ?>

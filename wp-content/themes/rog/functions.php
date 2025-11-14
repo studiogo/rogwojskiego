@@ -291,6 +291,29 @@ if( function_exists('acf_add_options_page') ) {
 }
 
 /**
+ * Inicjalizuje domyślne wielkości porcji przy pierwszym uruchomieniu
+ */
+function init_default_portion_sizes() {
+	// Sprawdź czy wielkości już istnieją
+	$existing = get_field('portion_sizes', 'option');
+
+	if( !$existing || empty($existing) ) {
+		// Domyślne wielkości i dopłaty
+		$default_portions = array(
+			array('portions' => 12, 'surcharge' => 40),
+			array('portions' => 15, 'surcharge' => 60),
+			array('portions' => 20, 'surcharge' => 80),
+			array('portions' => 25, 'surcharge' => 100),
+			array('portions' => 30, 'surcharge' => 120),
+		);
+
+		// Zapisz domyślne wartości
+		update_field('portion_sizes', $default_portions, 'option');
+	}
+}
+add_action('acf/init', 'init_default_portion_sizes');
+
+/**
  * Pobiera wszystkie dostępne wielkości porcji z globalnych ustawień ACF
  * @return array Tablica z wielkościami i dopłatami
  */

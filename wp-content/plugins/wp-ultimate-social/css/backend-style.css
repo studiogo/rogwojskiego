@@ -1,0 +1,254 @@
+/* 
+    Created on : Jun 29, 2015, 10:58:39 AM
+    Author     : Regan Khadgi
+*/
+
+/*.us-wrap {
+  padding: 10px;
+  min-height: 700px
+}*/
+.clear{clear:both}
+.us-each-plugin {
+    width: 28.6%;
+    border: 1px solid #bbb;
+    margin: 59px 30px 30px 0;
+    float: left;
+    padding: 75px 15px 15px;	
+/*    box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);*/
+   
+        min-height: 292px;
+
+}
+
+.us-plugin-img-wrap{
+    position: relative;
+}
+
+.us-each-plugin.us-plugin-right{
+    margin-right: 0;
+}
+.us-height-p {
+    min-height: 60px; 
+}
+.us-plugin-title {
+    cursor: pointer;
+    margin: 20px 0 0.5em;
+    color: #1a8dba;
+       font-size: 1.84286em;
+    line-height: 1.4em;
+    font-weight: 700;
+}
+.us-header {
+    background-color:#fff;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+    margin-top: 20px;
+    border-bottom: 3px solid #36A6CA;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.us-header h1{
+    margin: 0 0 17px;
+    color: #36A6CA;
+}
+
+.us-plugin-list {
+    width: 100%;
+    margin: 25px auto 0;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+    box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+}
+.us-each-plugin:hover, .us-each-plugin:focus {
+    border-color: #8ac9e8;
+    background: #f8fcfe;
+}
+
+.us-title-wrap{
+    float: right;
+    text-align: right;
+}
+
+.us-socials {
+    left: 50%;
+    margin-left: -100px;
+    position: absolute;
+    text-align: center;
+}
+
+.us-socials p{
+    margin: 0 0 10px;
+}
+
+span.us-version {
+    background-color: white;
+    color: #222;
+    padding: 2px 5px;
+    background: #eee;
+    border: #ccc solid 1px;
+    border-radius: 4px;
+}
+.us-popup-overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 0.25;
+    top: 0;
+    left: 0;
+}
+.us-popup-wrapper {
+    position: absolute;
+    background-color: white;
+    width: 90%;
+    margin: 0 auto;
+    top: 20px;
+    height: 80%;
+    padding: 20px;
+    left: 50px;
+    overflow-y: scroll;
+    z-index: 9
+}
+span.us-popup-close {
+    float: right;
+    background-color: #eee;
+    padding: 10px 15px;
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.us-popup-wrapper p {
+    line-height: 1.5;
+    font-size: 1.23077em;
+}
+.us-popup-wrapper h3 {
+    font-size: 20px;
+}
+span.us-popup-close:hover {
+    color: white;
+    background-color: #ccc;
+}
+.us-popup-wrapper li {
+    list-style: initial;
+    margin-left: 15px;
+    font-size: 1.23077em;
+    line-height: 1.5;
+}
+.us-popup-wrapper h4 {
+    font-size: 18px;
+}
+
+.clearfix:after {
+    content: ".";
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+    display: block;
+}
+
+.us-dashboard-link a {
+    background-color: #F1F1F1;
+    padding: 10px;
+    line-height: 60px;
+    text-decoration: none;
+}
+
+.wp-core-ui .button-primary{
+
+	  
+    text-align: center;
+    font-size: 1.1em;
+    height: 40px;
+    vertical-align: middle;
+    line-height: 40px;
+}
+ 
+.us-plugin-image {
+    border: 1px solid #bbb;
+    width: 130px;
+    height: 132px;
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    margin-left: -65px;
+    overflow: hidden;
+    top: -145px;
+}
+
+.us-plugin-image img, .us-plugin-usage img{
+	width: 100%;
+	height: auto;
+}
+
+
+.us-plugin-usage{
+	    margin-bottom: 15px;	
+}
+
+.us-each-plugin:hover .us-plugin-image , .us-each-plugin:focus .us-plugin-image  {
+    border-color: #8ac9e8;
+ 
+}
+
+
+@media screen and (max-width: 1400px){
+	.wp-core-ui .button-primary {
+ 
+    font-size: 1em;
+}
+
+@media screen and (max-width: 1341px){
+	.us-each-plugin{
+		    margin: 59px 1% 1% 0;
+		        box-sizing: border-box;
+		            width: 31.5%;
+	}
+
+	@media screen and (max-width: 1279px){
+	.us-each-plugin{
+	margin: 59px 4% 4% 0;
+  
+    width: 46%;
+	}
+	.wp-core-ui .button-primary {
+ 
+    font-size: 1.1em;	
+}
+}
+
+
+	@media screen and (max-width: 1279px){
+		.wp-core-ui .button-primary {
+ 
+    font-size: 1em;	
+}
+
+.us-each-plugin.us-plugin-right{
+	margin-right: 4%
+}
+	}
+
+		@media screen and (max-width: 980px){
+		.wp-core-ui .button-primary {
+ 
+    font-size: 1.2em;
+    width: 100%	
+}
+
+
+	}
+	@media screen and (max-width: 480px){
+	.us-each-plugin{
+	    margin: 80px 0 0;
+    width: 100%;
+
+	 
+}
+.wp-core-ui .button-primary{
+    margin-top: 10px;
+    display: inline-block;}
+}

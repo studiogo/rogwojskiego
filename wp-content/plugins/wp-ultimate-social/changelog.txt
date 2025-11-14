@@ -1,0 +1,90 @@
+= 1.1.0 =
+	- Social pro -
+		Fixed the facebook followers counts issue.
+		Added more options for the widgets section.
+		Fixed facebook share counts issue using access token.
+		Updated the delicious share URL.
+		Added option to hide/show fan/followers counts.
+		Added option to make floating sidebar semi-transparent.
+		Added options to enable/disable floating sidebar in posts/pages
+		Fixed the share issue for the floating sidebar for taxonomy and terms.
+		Addition of the Bit.ly API for the twitter url shortner feature.
+		Bug fixings for the facebook share count issue using transients.
+		Added viber, sms and facebook messenger buttons for social share.
+		Added option to fetch the URL share counts from HTTP url as well for HTTPS sites.
+		Addition of do_action hooks to make users add more social networks if they need it. You can use add_action using these tags for 'apss_more_networks' in content and 'apss_more_networks_in_shortcodes' for shortcode.
+		Added option to make the share icons left/right/center aligned.
+		Done the bug fixings for the popup shares issue for facebook and linkedin for different browsers.
+		Added an option to disable the cache for the share counter.
+		Added an option to share the content in new popup window.
+		Added an option to disable the popup email share and use the user's mailing app.
+		Done the bug fixing for the pinterest share in buddypress activity.
+		Added an attribute for shortcode to enable custom link share when using the shortcode.
+		Added new option to enable the sticky header share options.
+		Fixed the content not showing issue for archives pages.
+		Done the addition of new dribbble API for followers counter.
+		Done the modification of working mechanism of Instagram followers count with the change in the Instagram API on June 1 2016.
+		Added more button option for the floating sidebar to display all social shares in popup.
+		Added third party APIs to include the twitter share counts.
+		Added delay timer to show the popup share.
+		Added option to make the whats app share appear only in the mobile devices.
+		Done the bug fixing for the issue related to the_content hook for Yoast SEO plugin.
+		Done the css fixes for the floating sidebar.
+		Done bug fixing for the category and archives page sharing.
+		Added the individual social media counter shortcode for social counter.
+		Added the API method to fetch Facebook follower count.
+
+	- Twitter feeds
+		Fixed broken links for retweeted status
+		Included image for retweeted status
+		Fixed visible tweets for tweets ticker
+		Added an option to configure transition speed for tweets ticker
+		Fixed small bug for bxslider and lightbox js and css exclusion
+		Updated http to https for both twitter profile and media image
+		Fixed total_feeds parameter bug for twitter shortcode
+		Done fixing for Oauth and Twitter Oauth class confict with other twitter plugin
+		Added Multiple Twitter account in single feed
+		Added Hashtag Twitter Tweets support
+		Added Image disabling option
+		Added Image width configuration option
+		Added Cache Disabling option
+		Fixed few bugs for slider and ticker
+
+	- Pinterest
+		Addition of the more language options for the native pinterest pinit button.
+		Updated the Isotope JS file to latest version.
+		Added pinterest share shortcode button.
+		Done the addition of SAVE Button shortcode.
+		Removed the color options for the pinterest save button for rectangle shape.
+
+	- Social auto posts
+		Updated facebook authorization as per new API changes
+		Added Auto Posting for WordPress Post Schedule.
+
+	- Social login
+		Bug fixing for the disappear of the tab when opening the page by clicking from external link source.
+		Done the modification of the callBackUrl function to work with custom login url.
+		Fixed the issue appearing for the database insert error due to gender input field.
+		Fixed the display of the error message when user deny the authorization of the app for login.
+		Made the translation of the texts ready for the text “Welcome” and “Logout” that appears when the user logged in.
+		Now the plugin can Fetch the VK user email address requesting permission.
+		Fixed current page login redirect issue for VK.
+		Added the check for the username and if the username is empty user’s email address will be used as the username.
+		Added an image size width & height option for the facebook profile image.
+		Now a popup module will appear for the social login. Add Forget Password link for the social login with a login form.
+		The addition of the info for the Username creation note during registration. Added an option for the login redirect link for the social login shortcode.
+		Fixed the issue appearing while the LinkedIn APP not authorized for login using LinkedIn.
+		Fixed the issues for making the plugin multisite compatible.
+		Now the twitter user’s email address can be fetched for new users.
+		Fixed the google login issue when the user doesn’t have google+ account
+		Fixed the responsive issues for the registration page.
+		Fixed the translation issues for the registration page.
+		Fixed the login redirect issue for google account for current page.
+		Removed the bio field from the facebook data fetch field as the bio field has been depriciated for the graph API version 2.8.
+		Added buddypress xprofile mapping.
+		Added Email template design for new user notification email.
+		Easy Digital Download(EDD) Integration – Added the social connect buttons in checkout page, login and register shortcode.
+		Fixed login redirect link issue for the login form.
+		Fixed the user link issue for facebook and vk profile.
+		Done the bug fixing for the email notifications for the admin with the blank user details when user deny the app for login.
+		Done the modification of the user notification email function to work with wordpress version greater than 4.3.1

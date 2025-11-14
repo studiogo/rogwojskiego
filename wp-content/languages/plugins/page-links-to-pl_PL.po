@@ -1,0 +1,126 @@
+# Translation of Plugins - Page Links To - Stable (latest release) in Polish
+# This file is distributed under the same license as the Plugins - Page Links To - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2023-07-23 12:37:43+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 1 : 2);\n"
+"X-Generator: GlotPress/4.0.0-alpha.4\n"
+"Language: pl\n"
+"Project-Id-Version: Plugins - Page Links To - Stable (latest release)\n"
+
+#: templates/quick-add.php:26
+msgid "You should customize this short URL to make it shorter and more memorable!"
+msgstr "Proszę dostosować adres URL, aby był krótszy i bardziej zapadający w pamięć!"
+
+#: templates/quick-add.php:25
+msgid "page-title"
+msgstr "tytul-strony"
+
+#: templates/quick-add.php:25
+msgid "Short URL"
+msgstr "Krótki adres URL"
+
+#: templates/quick-add.php:21
+msgid "URL"
+msgstr "Adres URL"
+
+#: templates/quick-add.php:17
+msgid "Page Title"
+msgstr "Tytuł strony"
+
+#: templates/quick-add.php:17
+msgid "Title"
+msgstr "Tytuł"
+
+#: templates/quick-add.php:9
+msgid "Sorry, your browser does not support copying."
+msgstr "Używana przeglądarka nie obsługuje kopiowania."
+
+#: templates/quick-add.php:8
+msgid "Copied to Clipboard!"
+msgstr "Kopiuj do schowka!"
+
+#: classes/plugin.php:1122
+msgid "Linked URL"
+msgstr "Połączony adres URL"
+
+#: classes/plugin.php:1087
+msgid "Links to:"
+msgstr "Odnośnik do:"
+
+#: classes/plugin.php:919
+msgid "Page link draft saved!"
+msgstr "Wersja robocza odnośnika do strony została zapisana!"
+
+#: classes/plugin.php:919
+msgid "New page link published!"
+msgstr "Opublikowano mowy odnośnik do strony!"
+
+#: classes/plugin.php:424
+msgid "Add Page Link"
+msgstr "Dodaj odnośnik do strony"
+
+#: classes/plugin.php:396
+msgid "Copy Short URL"
+msgstr "Kopiuj skrócony URL"
+
+#: classes/plugin.php:378
+msgid "Page Link"
+msgstr "Odnośnik strony"
+
+#: classes/plugin.php:988
+msgid "No thanks"
+msgstr "Nie, dziękuje"
+
+#: classes/plugin.php:988
+msgid "Give Me Updates"
+msgstr "Pobierz aktualizacje"
+
+#. Author URI of the plugin
+msgid "https://coveredweb.com/"
+msgstr "https://coveredweb.com/"
+
+#. Author of the plugin
+msgid "Mark Jaquith"
+msgstr "Mark Jaquith"
+
+#. Description of the plugin
+msgid "Allows you to point WordPress pages or posts to a URL of your choosing.  Good for setting up navigational links to non-WP sections of your site or to off-site resources."
+msgstr "Umożliwia przekierowanie stron lub wpisów WordPress na wybrany adres URL.  Dobrze nadaje się do konfigurowania odnośników nawigacyjnych do sekcji witryny niezwiązanych z WordPressem lub do zasobów znajdujących się poza witryną."
+
+#. Plugin URI of the plugin
+msgid "http://txfx.net/wordpress-plugins/page-links-to/"
+msgstr "http://txfx.net/wordpress-plugins/page-links-to/"
+
+#. Plugin Name of the plugin
+#: classes/plugin.php:987
+msgid "Page Links To"
+msgstr "Odnośniki do stron"
+
+#: classes/plugin.php:1068
+msgid "<strong>Note</strong>: This content is pointing to a custom URL. Use the &#8220;%s&#8221; box to change this behavior."
+msgstr "<strong>Uwaga</strong>: treść ma ustawiony własny adres URL. Użyj zakładki &#8222;%s&#8221; aby zmienić."
+
+#: classes/plugin.php:549
+msgid "Open this link in a new tab"
+msgstr "Otwórz adres URL w nowej karcie"
+
+#: classes/plugin.php:545
+msgid "A custom URL"
+msgstr "Własny adres URL"
+
+#: classes/plugin.php:544
+msgid "Its normal WordPress URL"
+msgstr "Zwykły adres URL WordPressa"
+
+#: classes/plugin.php:543
+msgid "Point this content to:"
+msgstr "Skieruj zawartość na:"
+
+#: classes/plugin.php:1054
+msgctxt "Meta box title"
+msgid "Page Links To"
+msgstr "Odnośniki do strony"

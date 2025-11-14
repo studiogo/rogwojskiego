@@ -1,0 +1,3 @@
+dup-installer/
+dup-installer/*.sql
+*installer-backup.php

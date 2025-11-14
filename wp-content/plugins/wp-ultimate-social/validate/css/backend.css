@@ -1,0 +1,122 @@
+.us-header {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 15px 15px 0 0;
+  margin-top: 20px;
+  border-bottom: 3px solid #36A6CA;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  position: relative;
+ }
+
+ .us-title-wrap {
+  float: right;
+  text-align: right;
+}
+
+.us-socials {
+  left: 50%;
+  margin-left: -100px;
+  position: absolute;
+  text-align: center;
+  top: 10px;
+}
+
+span.us-version {
+    background-color: white;
+    color: #222;
+    padding: 2px 5px;
+    background: #eee;
+    border: #ccc solid 1px;
+    border-radius: 4px;
+}
+
+.us-dashboard-link a{
+  background-color: #F1F1F1;
+padding: 10px;
+line-height: 60px;
+text-decoration: none;
+}
+ .us-title-wrap{
+ 
+width:35%;
+text-align:right;
+float: right;}
+ .us-title-wrap h1{
+color: #36A6CA;
+font-size: 20px;
+margin-bottom: 15px;
+}
+.us-message.success-message {
+  background: none repeat scroll 0 0 #fff;
+  border-left: 3px solid #7ad03a;
+  box-shadow: 0 3px 1px 0 rgba(0, 0, 0, 0.1);
+  margin: 10px 0 26px;
+  padding: 12px 9px;
+}
+
+.us-message.error-message {
+  background: none repeat scroll 0 0 #fff;
+  border-left: 3px solid #dd3d36;
+  box-shadow: 0 3px 1px 0 rgba(0, 0, 0, 0.1);
+  margin: 10px 0 26px;
+  padding: 12px 9px;
+}
+
+.utsc-form-wrap {
+  background: none repeat scroll 0 0 #fff;
+  box-shadow: 0 3px 1px 0 rgba(0, 0, 0, 0.1);
+  margin: 24px 0 26px;
+  padding: 12px 9px;
+  border-radius: 0 0 15px 15px;
+}
+
+
+.validate_serial_key label{
+  display: inline-block;
+  width: 10%;
+  font-weight: bold;
+}
+
+.validate_serial_key input[type="text"] {
+  width: 35%;
+  padding: 5px 0px 5px 11px;
+}
+
+
+.submit_settings.button-primary{
+  background-color: #0074A2;
+  border: none;
+  border-radius: 6px;
+  width: 119px;
+  padding-left: -1px;
+  height: 35px;
+  margin-left: 30px;
+  font-weight: 600;
+  margin-top: -2px;
+  color: #fff;
+  padding: 4px 3px 2px 4px;
+}
+
+.submit_settings.button.button-primary:hover {
+  opacity: 0.7;
+  -webkit-transition: all 1s ease;
+  -moz-transition: all 1s ease;
+  -o-transition: all 1s ease;
+  transition: all 1s ease;
+}
+
+.us-info {
+  background-color: #FFFBCC;
+  color: black !important;
+  padding: 10px;
+  margin: 20px 4px 6px 0px;
+}
+
+.clearfix:after {
+    content: ".";
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+    display: block;
+}

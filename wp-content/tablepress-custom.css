@@ -1,0 +1,9 @@
+.tablepress-id-2 td {
+	border: 1px solid;
+}
+
+.tablepress thead th,
+.tablepress tfoot th {
+	background-color: #FFB6C1;
+	border: 1px solid;
+}

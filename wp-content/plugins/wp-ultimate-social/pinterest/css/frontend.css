@@ -1,0 +1,98 @@
+    /*-----------------------------------------------------------------------------
+	Clearfix
+-----------------------------------------------------------------------------*/
+
+.clearfix:after {
+    clear: both;
+}
+ 
+.clearfix:after, .clearfix:before {
+    display: table;
+    content: "";
+}
+ 
+.clearfix:after {
+    clear: both;
+}
+/*-----------------------------------------------------------------------------
+	Widget Css
+-----------------------------------------------------------------------------*/
+
+.apspp-caption-disabled .apspp-pinterest-latest-pin {
+    float: left;
+    width: 30.33%;
+    margin: 0 0 3% 3%;
+    list-style: none;
+    background: none repeat scroll 0 0 #eeeeee;
+    border-radius: 5px;
+    -webkit-box-shadow: 1px 3px 4px #cccccc;
+    box-shadow: 1px 3px 4px #cccccc;
+    padding: 4px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.apspp-caption-enabled .apspp-pinterest-latest-pin {
+    background: none repeat scroll 0 0 #eeeeee;
+    border-radius: 5px;
+    -webkit-box-shadow: 1px 3px 4px #cccccc;
+    box-shadow: 1px 3px 4px #cccccc;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    float: left;
+    list-style: outside none none;
+    margin: 3% 0 0 3%;
+    padding: 4px;
+    width: 47%;
+}
+#apspp-pinterest-latest-pins.apspp-caption-enabled {
+    margin: 3% 0 0 -3%;
+    padding: 0;
+    width: 100%;
+}
+#apspp-pinterest-latest-pins.apspp-caption-disabled {
+    margin: 3% 0 0 -3%;
+    padding: 0;
+    width: 100%;
+}
+.apspp-pinterest-image a {
+    border: medium none !important;
+    display: block;
+    text-align: center;
+}
+.apspp-pinterest-image img {
+    border: medium none;
+    display: inline-block !important;
+}
+.apspp-pinterest-text {
+    display: block;
+    margin-top: 10px;
+    text-align: center;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.apspp-pinterest-link {
+    background: #f4f4f4 url("https://s-passets.pinimg.com/images/pidgets/board_button_link.png") repeat-x scroll 0 0;
+    border: 1px solid #cccccc !important;
+    border-radius: 2px !important;
+    color: #746d6a !important;
+    cursor: pointer !important;
+    display: block !important;
+    font-family: Helvetica !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    height: 31px !important;
+    line-height: 30px !important;
+    margin: 10px 10px 0 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    text-shadow: 0 1px #ffffff !important;
+}
+
+.apspp-pinterest-link > a {
+    color: #cb2f38 !important;
+    text-decoration: none !important;
+}

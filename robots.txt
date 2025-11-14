@@ -1,0 +1,13 @@
+Disallow: 
+User-agent: Slurp
+Disallow: 
+User-agent: Teoma
+Disallow: 
+User-agent: ia_archiver
+Disallow: 
+User-agent: psbot
+Dissallow:
+User-agent: *
+Allow: /wp-admin/admin-ajax.php
+
+Sitemap: https://www.rogwojskiego.pl/sitemap_index.xml

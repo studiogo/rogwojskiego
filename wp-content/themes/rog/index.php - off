@@ -1,0 +1,44 @@
+<?php get_header(); ?>
+
+    <?php echo do_shortcode('[rev_slider alias="slider-1"][/rev_slider]');?>
+
+    <div id="gallery">
+      <?php
+        $categories = get_categories( array(
+          'orderby' => 'ID',
+          'order'   => 'DESC',
+          'hide_empty' => 0
+        ) );
+
+        foreach( $categories as $category ) {
+          $icon = get_term_meta( $category->term_id, 'nazwa_ikony', true);
+          $args = array(
+            'post_type' => 'produkt',
+            'cat' => $category->term_id,
+            'posts_per_page' => 10,
+            'post_status' => 'publish'
+          );
+          $the_query = new WP_Query( $args );
+
+          if ( $the_query->have_posts() ) {
+            echo '<div class="grid">';
+            echo '<div class="grid-sizer"></div>';
+            echo '<div class="grid-item grid-item--width2 grid-item-title"><img src="'.get_bloginfo('template_directory').'/img/cat_bg.jpg"><div><i class="'.$icon.'"></i> <p>Torty<br/>'.strtolower($category->name).'</p></div></div>';
+            $i = 1;
+            while ( $the_query->have_posts() ) {
+              $the_query->the_post();
+              $image = wp_get_attachment_image_src( get_post_thumbnail_id( $post->ID ), 'home-product' );
+              echo '<a href="'.get_the_permalink().'" class="grid-item '.(($i==3)?'grid-item--width2':"").'"><img src="'.$image[0].'"></a>';
+              if( $i == 8 ) {
+                echo '<a href="'.esc_url( get_category_link( $category->term_id ) ).'" class="grid-item grid-item-more stamp stamp1"><img src="'.get_bloginfo('template_directory').'/img/more_bg.jpg"><div><i class="fas fa-caret-right"></i> Zobacz wszystkie</div></a>';
+              }
+              $i++;
+            }
+            echo '</div>';
+          }
+          wp_reset_postdata();
+        }
+      ?>
+    </div>
+
+<?php get_footer(); ?>

@@ -20,11 +20,10 @@ jobs:
     - name: 📤 FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@4.3.4
       with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: ${{ secrets.FTP_SERVER_DIR }}
-
+        server: studiogo2.kylos.pl
+        username: tort@studiogo2.kylos.pl
+        password: VWQtABWMCvYpue2hxWQ3
+        server-dir: /
         # Wgrywaj tylko zmienione pliki
         exclude: |
           **/.git*

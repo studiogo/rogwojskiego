@@ -14,6 +14,54 @@ acf_add_local_field_group(array(
 	'key' => 'group_cake_pricing_global',
 	'title' => 'Globalne ustawienia cen tortów',
 	'fields' => array(
+
+		// USTAWIENIA AUTO-GENEROWANIA GRUP
+		array(
+			'key' => 'field_base_group_price',
+			'label' => 'Cena startowa (Grupa 1)',
+			'name' => 'base_group_price',
+			'type' => 'number',
+			'instructions' => 'Cena bazowa dla pierwszej grupy cenowej',
+			'required' => 1,
+			'default_value' => 120,
+			'min' => 0,
+			'step' => 10,
+			'append' => 'zł',
+		),
+		array(
+			'key' => 'field_price_step',
+			'label' => 'Krok cenowy',
+			'name' => 'price_step',
+			'type' => 'number',
+			'instructions' => 'O ile zł rośnie cena każdej kolejnej grupy (np. 10 zł)',
+			'required' => 1,
+			'default_value' => 10,
+			'min' => 1,
+			'step' => 1,
+			'append' => 'zł',
+		),
+		array(
+			'key' => 'field_number_of_groups',
+			'label' => 'Ilość grup',
+			'name' => 'number_of_groups',
+			'type' => 'number',
+			'instructions' => 'Ile grup cenowych wygenerować (np. 21)',
+			'required' => 1,
+			'default_value' => 21,
+			'min' => 1,
+			'max' => 50,
+			'step' => 1,
+		),
+		array(
+			'key' => 'field_auto_generate_help',
+			'label' => '',
+			'name' => 'auto_generate_help',
+			'type' => 'message',
+			'message' => '<strong>💡 Auto-generowanie:</strong> Po zapisaniu zmian w powyższych polach, grupy cenowe poniżej zostaną automatycznie zaktualizowane. Możesz też ręcznie edytować każdą grupę.',
+			'new_lines' => '',
+			'esc_html' => 0,
+		),
+
 		// GRUPY CENOWE
 		array(
 			'key' => 'field_price_groups',

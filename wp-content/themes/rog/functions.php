@@ -291,22 +291,24 @@ if( function_exists('acf_add_options_page') ) {
 }
 
 /**
- * Inicjalizuje domyślne grupy cenowe i wielkości porcji
+ * Inicjalizuje domyślne ustawienia cen
  */
 function init_default_pricing_data() {
-	// GRUPY CENOWE
+	// Ustawienia auto-generowania
+	if( !get_field('base_group_price', 'option') ) {
+		update_field('base_group_price', 120, 'option');
+	}
+	if( !get_field('price_step', 'option') ) {
+		update_field('price_step', 10, 'option');
+	}
+	if( !get_field('number_of_groups', 'option') ) {
+		update_field('number_of_groups', 21, 'option');
+	}
+
+	// GRUPY CENOWE - generuj tylko jeśli nie ma
 	$existing_groups = get_field('price_groups', 'option');
 	if( !is_array($existing_groups) || count($existing_groups) === 0 ) {
-		// Domyślne grupy: Grupa 1-21 (120 zł - 320 zł, co 10 zł)
-		$default_groups = array();
-		for( $i = 0; $i < 21; $i++ ) {
-			$price = 120 + ($i * 10);
-			$default_groups[] = array(
-				'group_name' => 'Grupa ' . ($i + 1),
-				'base_price' => $price,
-			);
-		}
-		update_field('price_groups', $default_groups, 'option');
+		generate_price_groups();
 	}
 
 	// WIELKOŚCI PORCJI
@@ -323,6 +325,58 @@ function init_default_pricing_data() {
 	}
 }
 add_action('acf/init', 'init_default_pricing_data');
+
+/**
+ * Generuje grupy cenowe na podstawie ustawień
+ */
+function generate_price_groups() {
+	$base_price = get_field('base_group_price', 'option') ?: 120;
+	$step = get_field('price_step', 'option') ?: 10;
+	$count = get_field('number_of_groups', 'option') ?: 21;
+
+	$groups = array();
+	for( $i = 0; $i < $count; $i++ ) {
+		$price = $base_price + ($i * $step);
+		$groups[] = array(
+			'group_name' => 'Grupa ' . ($i + 1),
+			'base_price' => $price,
+		);
+	}
+
+	update_field('price_groups', $groups, 'option');
+	return $groups;
+}
+
+/**
+ * Auto-regeneruj grupy przy zapisywaniu opcji
+ */
+function auto_regenerate_price_groups( $value, $post_id, $field ) {
+	// Tylko dla options page z cenami tortów
+	if( $post_id !== 'option' ) {
+		return $value;
+	}
+
+	// Jeśli zmieniono base_price, step lub number_of_groups
+	$trigger_fields = array('base_group_price', 'price_step', 'number_of_groups');
+	if( in_array($field['name'], $trigger_fields) ) {
+		// Ustaw flagę do regeneracji (wykonamy po zapisaniu wszystkich pól)
+		set_transient('regenerate_price_groups', true, 60);
+	}
+
+	return $value;
+}
+add_filter('acf/update_value', 'auto_regenerate_price_groups', 10, 3);
+
+/**
+ * Wykonaj regenerację po zapisaniu opcji
+ */
+function execute_price_groups_regeneration( $post_id ) {
+	if( $post_id === 'options' && get_transient('regenerate_price_groups') ) {
+		generate_price_groups();
+		delete_transient('regenerate_price_groups');
+	}
+}
+add_action('acf/save_post', 'execute_price_groups_regeneration', 20);
 
 /**
  * Ręczne wymuszenie inicjalizacji domyślnych porcji

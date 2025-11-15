@@ -177,6 +177,26 @@ acf_add_local_field_group(array(
 			'esc_html' => 0,
 		),
 
+		// ZARZĄDZANIE PRZYPISANIAMI
+		array(
+			'key' => 'field_manage_assignments_title',
+			'label' => 'Zarządzanie przypisaniami kategorii do grup',
+			'name' => 'manage_assignments_title',
+			'type' => 'message',
+			'message' => '<h3 style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">Aktualne przypisania</h3><p>Zarządzaj istniejącymi przypisaniami kategorii do grup cenowych</p>',
+			'new_lines' => '',
+			'esc_html' => 0,
+		),
+		array(
+			'key' => 'field_assignments_table',
+			'label' => '',
+			'name' => 'assignments_table',
+			'type' => 'message',
+			'message' => '', // Wypełniane dynamicznie przez funkcję PHP
+			'new_lines' => '',
+			'esc_html' => 0,
+		),
+
 		array(
 			'key' => 'field_pricing_help',
 			'label' => 'Pomoc',

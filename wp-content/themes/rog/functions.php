@@ -576,6 +576,166 @@ function bulk_assign_cakes_to_price_group() {
 add_action( 'wp_ajax_bulk_assign_cakes', 'bulk_assign_cakes_to_price_group' );
 
 /**
+ * Wypełnij tabelę zarządzania przypisaniami kategorii do grup
+ */
+function populate_assignments_table( $field ) {
+	if( $field['key'] !== 'field_assignments_table' ) {
+		return $field;
+	}
+
+	// Pobierz wszystkie kategorie z produktów
+	$categories = get_terms( array(
+		'taxonomy' => 'category',
+		'hide_empty' => true,
+		'object_ids' => get_posts( array(
+			'post_type' => 'produkt',
+			'posts_per_page' => -1,
+			'fields' => 'ids',
+		) ),
+	) );
+
+	if( empty($categories) ) {
+		$field['message'] = '<p style="color: #999;">Brak kategorii z produktami</p>';
+		return $field;
+	}
+
+	$html = '<table class="wp-list-table widefat fixed striped" style="margin-top: 10px;">';
+	$html .= '<thead><tr>';
+	$html .= '<th style="width: 30%;">Kategoria</th>';
+	$html .= '<th style="width: 30%;">Przypisane grupy cenowe</th>';
+	$html .= '<th style="width: 20%;">Liczba produktów</th>';
+	$html .= '<th style="width: 20%;">Akcje</th>';
+	$html .= '</tr></thead><tbody>';
+
+	foreach( $categories as $category ) {
+		// Pobierz wszystkie produkty z tej kategorii
+		$products = get_posts( array(
+			'post_type' => 'produkt',
+			'posts_per_page' => -1,
+			'cat' => $category->term_id,
+		) );
+
+		if( empty($products) ) {
+			continue;
+		}
+
+		// Policz produkty w każdej grupie
+		$group_counts = array();
+		$total_assigned = 0;
+
+		foreach( $products as $product ) {
+			$enabled = get_field( 'enable_pricing', $product->ID );
+			$mode = get_field( 'price_mode', $product->ID );
+
+			if( $enabled && $mode === 'automatic' ) {
+				$group_index = get_field( 'price_group', $product->ID );
+				if( $group_index !== false && $group_index !== '' ) {
+					if( !isset($group_counts[$group_index]) ) {
+						$group_counts[$group_index] = 0;
+					}
+					$group_counts[$group_index]++;
+					$total_assigned++;
+				}
+			}
+		}
+
+		$html .= '<tr>';
+		$html .= '<td><strong>' . esc_html( $category->name ) . '</strong></td>';
+
+		// Pokaż przypisane grupy
+		$html .= '<td>';
+		if( empty($group_counts) ) {
+			$html .= '<span style="color: #999;">Brak przypisań</span>';
+		} else {
+			$group_labels = array();
+			foreach( $group_counts as $group_index => $count ) {
+				$group_name = get_group_name_by_index( $group_index );
+				$group_labels[] = $group_name . ' (' . $count . ')';
+			}
+			$html .= implode( ', ', $group_labels );
+		}
+		$html .= '</td>';
+
+		$html .= '<td>' . count($products) . ' tortów (' . $total_assigned . ' przypisanych)</td>';
+
+		// Akcje
+		$html .= '<td>';
+		if( !empty($group_counts) ) {
+			$html .= '<button class="button button-small manage-category-assignment" data-category-id="' . $category->term_id . '" data-action="change">Zmień grupę</button> ';
+			$html .= '<button class="button button-small button-link-delete manage-category-assignment" data-category-id="' . $category->term_id . '" data-action="remove">Usuń przypisanie</button>';
+		} else {
+			$html .= '<span style="color: #999;">—</span>';
+		}
+		$html .= '</td>';
+		$html .= '</tr>';
+	}
+
+	$html .= '</tbody></table>';
+	$html .= '<div id="manage-assignment-result" style="margin-top: 10px;"></div>';
+
+	$field['message'] = $html;
+	return $field;
+}
+add_filter( 'acf/load_field/key=field_assignments_table', 'populate_assignments_table' );
+
+/**
+ * Pobierz nazwę grupy po indeksie
+ */
+function get_group_name_by_index( $group_index ) {
+	if( have_rows('price_groups', 'option') ) {
+		$index = 0;
+		while( have_rows('price_groups', 'option') ) {
+			the_row();
+			if( $index == $group_index ) {
+				return get_sub_field('group_name');
+			}
+			$index++;
+		}
+	}
+	return 'Grupa ' . ($group_index + 1);
+}
+
+/**
+ * AJAX handler - usuń przypisanie grupy dla kategorii
+ */
+function remove_category_price_group() {
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Brak uprawnień' );
+	}
+
+	$category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
+
+	if( !$category_id ) {
+		wp_send_json_error( 'Wybierz kategorię' );
+	}
+
+	// Pobierz wszystkie produkty z kategorii
+	$products = get_posts( array(
+		'post_type' => 'produkt',
+		'posts_per_page' => -1,
+		'cat' => $category_id,
+	) );
+
+	$count = 0;
+
+	foreach( $products as $product ) {
+		$enabled = get_field( 'enable_pricing', $product->ID );
+		$mode = get_field( 'price_mode', $product->ID );
+
+		if( $enabled && $mode === 'automatic' ) {
+			delete_field( 'price_group', $product->ID );
+			$count++;
+		}
+	}
+
+	wp_send_json_success( array(
+		'message' => "Usunięto przypisanie grupy dla {$count} tortów",
+		'count' => $count,
+	) );
+}
+add_action( 'wp_ajax_remove_category_assignment', 'remove_category_price_group' );
+
+/**
  * JavaScript dla hurtowego przypisywania
  */
 function enqueue_bulk_assignment_script() {
@@ -586,6 +746,7 @@ function enqueue_bulk_assignment_script() {
 		jQuery(document).ready(function($) {
 			console.log('Bulk assignment script loaded');
 
+			// Przypisywanie nowych produktów do grupy
 			$('#bulk-assign-cakes').on('click', function() {
 				console.log('Button clicked');
 
@@ -600,7 +761,6 @@ function enqueue_bulk_assignment_script() {
 
 				console.log('Category ID:', categoryId);
 				console.log('Group Index:', groupIndex);
-				console.log('All selects on page:', $('select').length);
 
 				if( !categoryId || !groupIndex ) {
 					$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wybierz kategorię i grupę cenową!</p></div>');
@@ -618,18 +778,95 @@ function enqueue_bulk_assignment_script() {
 						group_index: groupIndex,
 					},
 					success: function(response) {
-						console.log('AJAX response:', response);
 						if( response.success ) {
 							$('#bulk-assign-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+							// Odśwież stronę po 1 sekundzie aby zaktualizować tabelę
+							setTimeout(function() {
+								location.reload();
+							}, 1000);
 						} else {
 							$('#bulk-assign-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
 						}
 					},
 					error: function(xhr, status, error) {
-						console.log('AJAX error:', error);
 						$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wystąpił błąd: ' + error + '</p></div>');
 					}
 				});
+			});
+
+			// Zarządzanie istniejącymi przypisaniami
+			$('.manage-category-assignment').on('click', function() {
+				var categoryId = $(this).data('category-id');
+				var action = $(this).data('action');
+
+				if( action === 'remove' ) {
+					if( !confirm('Czy na pewno chcesz usunąć przypisanie grupy dla wszystkich produktów w tej kategorii?') ) {
+						return;
+					}
+
+					$('#manage-assignment-result').html('<div class="notice notice-info"><p>Usuwam przypisanie...</p></div>');
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'remove_category_assignment',
+							category_id: categoryId,
+						},
+						success: function(response) {
+							if( response.success ) {
+								$('#manage-assignment-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+								setTimeout(function() {
+									location.reload();
+								}, 1000);
+							} else {
+								$('#manage-assignment-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+							}
+						},
+						error: function() {
+							$('#manage-assignment-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
+						}
+					});
+				} else if( action === 'change' ) {
+					// Pokaż prompt do wyboru nowej grupy
+					var newGroup = prompt('Wybierz numer grupy (0-20) do której chcesz przypisać wszystkie produkty z tej kategorii:');
+
+					if( newGroup === null ) {
+						return; // Anulowano
+					}
+
+					newGroup = parseInt(newGroup);
+
+					if( isNaN(newGroup) || newGroup < 0 ) {
+						alert('Podaj prawidłowy numer grupy (0-20)');
+						return;
+					}
+
+					$('#manage-assignment-result').html('<div class="notice notice-info"><p>Zmieniam grupę...</p></div>');
+
+					$.ajax({
+						url: ajaxurl,
+						type: 'POST',
+						data: {
+							action: 'bulk_assign_cakes',
+							category_id: categoryId,
+							group_index: newGroup,
+						},
+						success: function(response) {
+							if( response.success ) {
+								$('#manage-assignment-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+								setTimeout(function() {
+									location.reload();
+								}, 1000);
+							} else {
+								$('#manage-assignment-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+							}
+						},
+						error: function() {
+							$('#manage-assignment-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
+						}
+					});
+				}
 			});
 		});
 		</script>

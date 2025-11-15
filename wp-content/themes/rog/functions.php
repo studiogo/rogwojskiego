@@ -648,53 +648,64 @@ function add_bulk_action_assign_price_group( $bulk_actions ) {
 add_filter( 'bulk_actions-edit-produkt', 'add_bulk_action_assign_price_group' );
 
 /**
- * Handler dla Bulk Action - przekieruj do strony wyboru grupy
+ * Dodaj ukrytą stronę admin dla bulk przypisywania
  */
-function handle_bulk_action_assign_price_group( $redirect_to, $action, $post_ids ) {
-	if ( $action !== 'assign_price_group' ) {
-		return $redirect_to;
-	}
-
-	// Przekieruj do strony gdzie użytkownik wybierze grupę
-	$redirect_to = add_query_arg( array(
-		'bulk_assign' => '1',
-		'post_ids' => implode( ',', $post_ids ),
-	), admin_url( 'admin.php?page=cake-pricing-settings' ) );
-
-	return $redirect_to;
+function register_bulk_assign_page() {
+	add_submenu_page(
+		null, // Ukryta strona (brak w menu)
+		'Przypisz do grupy cenowej',
+		'Przypisz do grupy cenowej',
+		'edit_posts',
+		'bulk-assign-price-group',
+		'render_bulk_assign_page'
+	);
 }
-add_filter( 'handle_bulk_actions-edit-produkt', 'handle_bulk_action_assign_price_group', 10, 3 );
+add_action( 'admin_menu', 'register_bulk_assign_page' );
 
 /**
- * Pokaż formularz wyboru grupy dla bulk action
+ * Renderuj stronę bulk przypisywania
  */
-function show_bulk_assign_form() {
-	if( !isset($_GET['bulk_assign']) || !isset($_GET['post_ids']) ) {
-		return;
-	}
-
-	// Tylko na stronie ustawień Ceny tortów
-	$screen = get_current_screen();
-	if( !$screen || $screen->id !== 'toplevel_page_cake-pricing-settings' ) {
-		return;
+function render_bulk_assign_page() {
+	if( !isset($_GET['post_ids']) ) {
+		wp_die( 'Brak produktów do przypisania' );
 	}
 
 	$post_ids = array_map( 'intval', explode( ',', $_GET['post_ids'] ) );
 	$count = count( $post_ids );
 
+	// Przetwórz formularz jeśli został wysłany
+	if( isset($_POST['do_bulk_assign']) && isset($_POST['bulk_assign_nonce']) ) {
+		if( wp_verify_nonce( $_POST['bulk_assign_nonce'], 'bulk_assign_group' ) ) {
+			$group_index = intval( $_POST['group_index'] );
+
+			foreach( $post_ids as $post_id ) {
+				update_field( 'enable_pricing', 1, $post_id );
+				update_field( 'price_mode', 'automatic', $post_id );
+				update_field( 'price_group', $group_index, $post_id );
+			}
+
+			// Przekieruj z komunikatem sukcesu
+			wp_redirect( add_query_arg( array(
+				'post_type' => 'produkt',
+				'bulk_assigned' => $count,
+			), admin_url( 'edit.php' ) ) );
+			exit;
+		}
+	}
+
 	?>
-	<div class="wrap" style="background: #fff; padding: 20px; margin: 20px 0 20px 0; border-left: 4px solid #2271b1;">
-		<h2 style="margin-top: 0;">Przypisz <?php echo $count; ?> tortów do grupy cenowej</h2>
+	<div class="wrap">
+		<h1>Przypisz <?php echo $count; ?> tortów do grupy cenowej</h1>
+
 		<form method="post" action="">
 			<?php wp_nonce_field( 'bulk_assign_group', 'bulk_assign_nonce' ); ?>
-			<input type="hidden" name="post_ids" value="<?php echo esc_attr( $_GET['post_ids'] ); ?>">
 
 			<table class="form-table">
 				<tr>
-					<th><label>Grupa cenowa</label></th>
+					<th scope="row"><label for="group_index">Grupa cenowa</label></th>
 					<td>
-						<select name="group_index" required style="min-width: 300px;">
-							<option value="">-- Wybierz grupę --</option>
+						<select name="group_index" id="group_index" required style="min-width: 400px; font-size: 14px;">
+							<option value="">-- Wybierz grupę cenową --</option>
 							<?php
 							if( have_rows('price_groups', 'option') ) {
 								while( have_rows('price_groups', 'option') ) {
@@ -707,50 +718,36 @@ function show_bulk_assign_form() {
 							}
 							?>
 						</select>
+						<p class="description">Wybierz grupę cenową, która zostanie przypisana do <?php echo $count; ?> wybranych tortów.</p>
 					</td>
 				</tr>
 			</table>
 
 			<p class="submit">
-				<button type="submit" name="do_bulk_assign" class="button button-primary">Przypisz wszystkie</button>
-				<a href="<?php echo admin_url('edit.php?post_type=produkt'); ?>" class="button">Anuluj</a>
+				<button type="submit" name="do_bulk_assign" class="button button-primary button-large">Przypisz wszystkie</button>
+				<a href="<?php echo admin_url('edit.php?post_type=produkt'); ?>" class="button button-large">Anuluj</a>
 			</p>
 		</form>
 	</div>
 	<?php
 }
-add_action( 'acf/input/admin_head', 'show_bulk_assign_form' );
 
 /**
- * Przetwórz formularz bulk assign
+ * Handler dla Bulk Action - przekieruj do dedykowanej strony
  */
-function process_bulk_assign_form() {
-	if( !isset($_POST['do_bulk_assign']) || !isset($_POST['bulk_assign_nonce']) ) {
-		return;
+function handle_bulk_action_assign_price_group( $redirect_to, $action, $post_ids ) {
+	if ( $action !== 'assign_price_group' ) {
+		return $redirect_to;
 	}
 
-	if( !wp_verify_nonce( $_POST['bulk_assign_nonce'], 'bulk_assign_group' ) ) {
-		return;
-	}
+	// Przekieruj do dedykowanej strony bulk przypisywania
+	$redirect_to = add_query_arg( array(
+		'post_ids' => implode( ',', $post_ids ),
+	), admin_url( 'admin.php?page=bulk-assign-price-group' ) );
 
-	$post_ids = array_map( 'intval', explode( ',', $_POST['post_ids'] ) );
-	$group_index = intval( $_POST['group_index'] );
-	$count = 0;
-
-	foreach( $post_ids as $post_id ) {
-		update_field( 'enable_pricing', 1, $post_id );
-		update_field( 'price_mode', 'automatic', $post_id );
-		update_field( 'price_group', $group_index, $post_id );
-		$count++;
-	}
-
-	// Przekieruj z komunikatem
-	wp_redirect( add_query_arg( array(
-		'bulk_assigned' => $count,
-	), admin_url('edit.php?post_type=produkt') ) );
-	exit;
+	return $redirect_to;
 }
-add_action( 'admin_init', 'process_bulk_assign_form' );
+add_filter( 'handle_bulk_actions-edit-produkt', 'handle_bulk_action_assign_price_group', 10, 3 );
 
 /**
  * Pokaż komunikat po bulk assign
@@ -762,5 +759,74 @@ function show_bulk_assign_notice() {
 	}
 }
 add_action( 'admin_notices', 'show_bulk_assign_notice' );
+
+/**
+ * Dodaj kolumnę "Grupa cenowa" do listy produktów
+ */
+function add_price_group_column( $columns ) {
+	$new_columns = array();
+	foreach( $columns as $key => $value ) {
+		$new_columns[$key] = $value;
+		// Dodaj kolumnę "Grupa cenowa" po kolumnie tytułu
+		if( $key === 'title' ) {
+			$new_columns['price_group'] = 'Grupa cenowa';
+		}
+	}
+	return $new_columns;
+}
+add_filter( 'manage_produkt_posts_columns', 'add_price_group_column' );
+
+/**
+ * Wypełnij kolumnę "Grupa cenowa" danymi
+ */
+function fill_price_group_column( $column, $post_id ) {
+	if( $column === 'price_group' ) {
+		$enabled = get_field( 'enable_pricing', $post_id );
+		if( !$enabled ) {
+			echo '<span style="color: #999;">—</span>';
+			return;
+		}
+
+		$mode = get_field( 'price_mode', $post_id );
+		if( $mode !== 'automatic' ) {
+			echo '<span style="color: #999;">Ręczne</span>';
+			return;
+		}
+
+		$group_index = get_field( 'price_group', $post_id );
+		if( $group_index === false || $group_index === '' ) {
+			echo '<span style="color: #d63638;">Brak</span>';
+			return;
+		}
+
+		// Pobierz nazwę i cenę grupy
+		if( have_rows('price_groups', 'option') ) {
+			$index = 0;
+			while( have_rows('price_groups', 'option') ) {
+				the_row();
+				if( $index == $group_index ) {
+					$name = get_sub_field('group_name');
+					$price = get_sub_field('base_price');
+					echo '<strong>' . esc_html( $name ) . '</strong><br>';
+					echo '<span style="color: #2271b1;">' . $price . ' zł</span>';
+					return;
+				}
+				$index++;
+			}
+		}
+
+		echo '<span style="color: #d63638;">Błąd</span>';
+	}
+}
+add_action( 'manage_produkt_posts_custom_column', 'fill_price_group_column', 10, 2 );
+
+/**
+ * Spraw by kolumna "Grupa cenowa" była sortowalna
+ */
+function make_price_group_column_sortable( $columns ) {
+	$columns['price_group'] = 'price_group';
+	return $columns;
+}
+add_filter( 'manage_edit-produkt_sortable_columns', 'make_price_group_column_sortable' );
 
 ?>

@@ -131,6 +131,52 @@ acf_add_local_field_group(array(
 				),
 			),
 		),
+
+		// HURTOWE PRZYPISYWANIE
+		array(
+			'key' => 'field_bulk_assignment_title',
+			'label' => 'Hurtowe przypisywanie tortów do grup',
+			'name' => 'bulk_assignment_title',
+			'type' => 'message',
+			'message' => '<h3>Przypisz wiele tortów naraz do grupy cenowej</h3>',
+			'new_lines' => '',
+			'esc_html' => 0,
+		),
+		array(
+			'key' => 'field_bulk_category',
+			'label' => 'Kategoria tortów',
+			'name' => 'bulk_category',
+			'type' => 'taxonomy',
+			'taxonomy' => 'category',
+			'field_type' => 'select',
+			'instructions' => 'Wybierz kategorię tortów do przypisania',
+			'required' => 0,
+			'allow_null' => 1,
+			'add_term' => 0,
+			'save_terms' => 0,
+			'load_terms' => 0,
+		),
+		array(
+			'key' => 'field_bulk_target_group',
+			'label' => 'Docelowa grupa cenowa',
+			'name' => 'bulk_target_group',
+			'type' => 'select',
+			'instructions' => 'Wybierz grupę cenową do przypisania',
+			'required' => 0,
+			'choices' => array(), // Wypełniane dynamicznie
+			'allow_null' => 1,
+			'ui' => 1,
+		),
+		array(
+			'key' => 'field_bulk_action_button',
+			'label' => '',
+			'name' => 'bulk_action_button',
+			'type' => 'message',
+			'message' => '<button type="button" id="bulk-assign-cakes" class="button button-primary button-large">Przypisz torty z kategorii do grupy</button><div id="bulk-assign-result" style="margin-top:10px;"></div>',
+			'new_lines' => '',
+			'esc_html' => 0,
+		),
+
 		array(
 			'key' => 'field_pricing_help',
 			'label' => 'Pomoc',
@@ -342,5 +388,13 @@ function acf_load_price_group_choices( $field ) {
 	return $field;
 }
 add_filter('acf/load_field/key=field_price_group', 'acf_load_price_group_choices');
+
+/**
+ * Wypełnij dropdown "Docelowa grupa cenowa" w hurtowym przypisywaniu
+ */
+function acf_load_bulk_target_group_choices( $field ) {
+	return acf_load_price_group_choices( $field );
+}
+add_filter('acf/load_field/key=field_bulk_target_group', 'acf_load_bulk_target_group_choices');
 
 endif;

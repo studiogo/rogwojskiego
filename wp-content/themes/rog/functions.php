@@ -532,4 +532,213 @@ function get_all_cake_prices($post_id) {
 	return $prices;
 }
 
+/**
+ * AJAX handler - hurtowe przypisywanie tortów z kategorii do grupy
+ */
+function bulk_assign_cakes_to_price_group() {
+	// Sprawdź uprawnienia
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_send_json_error( 'Brak uprawnień' );
+	}
+
+	$category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : 0;
+	$group_index = isset($_POST['group_index']) ? intval($_POST['group_index']) : null;
+
+	if( !$category_id || $group_index === null ) {
+		wp_send_json_error( 'Wybierz kategorię i grupę cenową' );
+	}
+
+	// Pobierz wszystkie produkty z kategorii
+	$args = array(
+		'post_type' => 'produkt',
+		'posts_per_page' => -1,
+		'cat' => $category_id,
+	);
+
+	$products = get_posts( $args );
+	$count = 0;
+
+	foreach( $products as $product ) {
+		// Włącz moduł cen
+		update_field( 'enable_pricing', 1, $product->ID );
+		// Ustaw tryb automatyczny
+		update_field( 'price_mode', 'automatic', $product->ID );
+		// Przypisz grupę
+		update_field( 'price_group', $group_index, $product->ID );
+		$count++;
+	}
+
+	wp_send_json_success( array(
+		'message' => "Przypisano {$count} tortów do grupy cenowej",
+		'count' => $count,
+	) );
+}
+add_action( 'wp_ajax_bulk_assign_cakes', 'bulk_assign_cakes_to_price_group' );
+
+/**
+ * JavaScript dla hurtowego przypisywania
+ */
+function enqueue_bulk_assignment_script() {
+	$screen = get_current_screen();
+	if( $screen && $screen->id === 'toplevel_page_cake-pricing-settings' ) {
+		?>
+		<script>
+		jQuery(document).ready(function($) {
+			$('#bulk-assign-cakes').on('click', function() {
+				var categoryId = $('select[data-name="bulk_category"]').val();
+				var groupIndex = $('select[data-name="bulk_target_group"]').val();
+
+				if( !categoryId || !groupIndex ) {
+					$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wybierz kategorię i grupę cenową!</p></div>');
+					return;
+				}
+
+				$('#bulk-assign-result').html('<div class="notice notice-info"><p>Przetwarzam...</p></div>');
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'bulk_assign_cakes',
+						category_id: categoryId,
+						group_index: groupIndex,
+					},
+					success: function(response) {
+						if( response.success ) {
+							$('#bulk-assign-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+						} else {
+							$('#bulk-assign-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+						}
+					},
+					error: function() {
+						$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
+					}
+				});
+			});
+		});
+		</script>
+		<?php
+	}
+}
+add_action( 'admin_footer', 'enqueue_bulk_assignment_script' );
+
+/**
+ * Bulk Action - dodaj do listy produktów opcję przypisania do grupy
+ */
+function add_bulk_action_assign_price_group( $bulk_actions ) {
+	$bulk_actions['assign_price_group'] = 'Przypisz do grupy cenowej';
+	return $bulk_actions;
+}
+add_filter( 'bulk_actions-edit-produkt', 'add_bulk_action_assign_price_group' );
+
+/**
+ * Handler dla Bulk Action - przekieruj do strony wyboru grupy
+ */
+function handle_bulk_action_assign_price_group( $redirect_to, $action, $post_ids ) {
+	if ( $action !== 'assign_price_group' ) {
+		return $redirect_to;
+	}
+
+	// Przekieruj do strony gdzie użytkownik wybierze grupę
+	$redirect_to = add_query_arg( array(
+		'bulk_assign' => '1',
+		'post_ids' => implode( ',', $post_ids ),
+	), admin_url( 'admin.php?page=cake-pricing-settings' ) );
+
+	return $redirect_to;
+}
+add_filter( 'handle_bulk_actions-edit-produkt', 'handle_bulk_action_assign_price_group', 10, 3 );
+
+/**
+ * Pokaż formularz wyboru grupy dla bulk action
+ */
+function show_bulk_assign_form() {
+	if( !isset($_GET['bulk_assign']) || !isset($_GET['post_ids']) ) {
+		return;
+	}
+
+	$post_ids = array_map( 'intval', explode( ',', $_GET['post_ids'] ) );
+	$count = count( $post_ids );
+
+	?>
+	<div class="notice notice-info is-dismissible" style="padding:20px;">
+		<h2>Przypisz <?php echo $count; ?> tortów do grupy cenowej</h2>
+		<form method="post" action="">
+			<?php wp_nonce_field( 'bulk_assign_group', 'bulk_assign_nonce' ); ?>
+			<input type="hidden" name="post_ids" value="<?php echo esc_attr( $_GET['post_ids'] ); ?>">
+
+			<table class="form-table">
+				<tr>
+					<th><label>Grupa cenowa</label></th>
+					<td>
+						<select name="group_index" required>
+							<option value="">-- Wybierz grupę --</option>
+							<?php
+							if( have_rows('price_groups', 'option') ) {
+								while( have_rows('price_groups', 'option') ) {
+									the_row();
+									$index = get_row_index() - 1;
+									$name = get_sub_field('group_name');
+									$price = get_sub_field('base_price');
+									echo '<option value="' . $index . '">' . $name . ' (' . $price . ' zł)</option>';
+								}
+							}
+							?>
+						</select>
+					</td>
+				</tr>
+			</table>
+
+			<p class="submit">
+				<button type="submit" name="do_bulk_assign" class="button button-primary">Przypisz wszystkie</button>
+				<a href="<?php echo admin_url('edit.php?post_type=produkt'); ?>" class="button">Anuluj</a>
+			</p>
+		</form>
+	</div>
+	<?php
+}
+add_action( 'acf/input/admin_head', 'show_bulk_assign_form' );
+
+/**
+ * Przetwórz formularz bulk assign
+ */
+function process_bulk_assign_form() {
+	if( !isset($_POST['do_bulk_assign']) || !isset($_POST['bulk_assign_nonce']) ) {
+		return;
+	}
+
+	if( !wp_verify_nonce( $_POST['bulk_assign_nonce'], 'bulk_assign_group' ) ) {
+		return;
+	}
+
+	$post_ids = array_map( 'intval', explode( ',', $_POST['post_ids'] ) );
+	$group_index = intval( $_POST['group_index'] );
+	$count = 0;
+
+	foreach( $post_ids as $post_id ) {
+		update_field( 'enable_pricing', 1, $post_id );
+		update_field( 'price_mode', 'automatic', $post_id );
+		update_field( 'price_group', $group_index, $post_id );
+		$count++;
+	}
+
+	// Przekieruj z komunikatem
+	wp_redirect( add_query_arg( array(
+		'bulk_assigned' => $count,
+	), admin_url('edit.php?post_type=produkt') ) );
+	exit;
+}
+add_action( 'admin_init', 'process_bulk_assign_form' );
+
+/**
+ * Pokaż komunikat po bulk assign
+ */
+function show_bulk_assign_notice() {
+	if( isset($_GET['bulk_assigned']) ) {
+		$count = intval( $_GET['bulk_assigned'] );
+		echo '<div class="notice notice-success is-dismissible"><p>Przypisano ' . $count . ' tortów do grupy cenowej</p></div>';
+	}
+}
+add_action( 'admin_notices', 'show_bulk_assign_notice' );
+
 ?>

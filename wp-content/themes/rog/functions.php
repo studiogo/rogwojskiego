@@ -585,8 +585,12 @@ function enqueue_bulk_assignment_script() {
 		<script>
 		jQuery(document).ready(function($) {
 			$('#bulk-assign-cakes').on('click', function() {
-				var categoryId = $('select[data-name="bulk_category"]').val();
-				var groupIndex = $('select[data-name="bulk_target_group"]').val();
+				// Użyj selektorów data-key dla pól ACF
+				var categoryId = $('select[data-key="field_bulk_category"]').val();
+				var groupIndex = $('select[data-key="field_bulk_target_group"]').val();
+
+				console.log('Category ID:', categoryId);
+				console.log('Group Index:', groupIndex);
 
 				if( !categoryId || !groupIndex ) {
 					$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wybierz kategorię i grupę cenową!</p></div>');
@@ -653,6 +657,12 @@ add_filter( 'handle_bulk_actions-edit-produkt', 'handle_bulk_action_assign_price
  * Pokaż formularz wyboru grupy dla bulk action
  */
 function show_bulk_assign_form() {
+	// Tylko na stronie ustawień Ceny tortów
+	$screen = get_current_screen();
+	if( !$screen || $screen->id !== 'toplevel_page_cake-pricing-settings' ) {
+		return;
+	}
+
 	if( !isset($_GET['bulk_assign']) || !isset($_GET['post_ids']) ) {
 		return;
 	}
@@ -661,7 +671,7 @@ function show_bulk_assign_form() {
 	$count = count( $post_ids );
 
 	?>
-	<div class="notice notice-info is-dismissible" style="padding:20px;">
+	<div class="notice notice-info" style="padding:20px; margin: 20px 0;">
 		<h2>Przypisz <?php echo $count; ?> tortów do grupy cenowej</h2>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'bulk_assign_group', 'bulk_assign_nonce' ); ?>
@@ -697,7 +707,7 @@ function show_bulk_assign_form() {
 	</div>
 	<?php
 }
-add_action( 'acf/input/admin_head', 'show_bulk_assign_form' );
+add_action( 'admin_notices', 'show_bulk_assign_form' );
 
 /**
  * Przetwórz formularz bulk assign

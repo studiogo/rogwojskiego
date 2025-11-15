@@ -294,10 +294,11 @@ if( function_exists('acf_add_options_page') ) {
  * Inicjalizuje domyślne wielkości porcji przy pierwszym uruchomieniu
  */
 function init_default_portion_sizes() {
-	// Sprawdź czy wielkości już istnieją
+	// Sprawdź czy wielkości już istnieją i czy mają jakieś elementy
 	$existing = get_field('portion_sizes', 'option');
 
-	if( !$existing || empty($existing) ) {
+	// Inicjalizuj tylko jeśli pole jest puste LUB nie jest tablicą LUB tablica nie ma elementów
+	if( !is_array($existing) || count($existing) === 0 ) {
 		// Domyślne wielkości i dopłaty
 		$default_portions = array(
 			array('portions' => 12, 'surcharge' => 40),
@@ -312,6 +313,26 @@ function init_default_portion_sizes() {
 	}
 }
 add_action('acf/init', 'init_default_portion_sizes');
+
+/**
+ * Ręczne wymuszenie inicjalizacji domyślnych porcji
+ * Użyj tego URL w przeglądarce: /wp-admin/?force_init_portions=1
+ */
+function force_init_default_portions() {
+	if( isset($_GET['force_init_portions']) && $_GET['force_init_portions'] == '1' && current_user_can('manage_options') ) {
+		$default_portions = array(
+			array('portions' => 12, 'surcharge' => 40),
+			array('portions' => 15, 'surcharge' => 60),
+			array('portions' => 20, 'surcharge' => 80),
+			array('portions' => 25, 'surcharge' => 100),
+			array('portions' => 30, 'surcharge' => 120),
+		);
+		update_field('portion_sizes', $default_portions, 'option');
+		wp_redirect(admin_url('admin.php?page=cake-pricing-settings&init=success'));
+		exit;
+	}
+}
+add_action('admin_init', 'force_init_default_portions');
 
 /**
  * Pobiera wszystkie dostępne wielkości porcji z globalnych ustawień ACF

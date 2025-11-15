@@ -1,5 +1,5 @@
 /**
- * Moduł cen tortów - Dynamiczna kalkulacja ceny w formularzu
+ * Moduł cen tortów - Integracja z istniejącym formularzem CF7
  */
 
 (function($) {
@@ -64,7 +64,7 @@
 
                         if (data.has_pricing) {
                             self.pricingData = data;
-                            self.injectFormFields();
+                            self.integrateWithExistingForm();
                         }
                     } catch(e) {
                         console.error('Błąd parsowania danych cenowych:', e);
@@ -77,9 +77,9 @@
         },
 
         /**
-         * Wstrzykiwanie pól do formularza CF7
+         * Integracja z istniejącym formularzem CF7
          */
-        injectFormFields: function() {
+        integrateWithExistingForm: function() {
             var self = this;
 
             // Czekamy na załadowanie formularza w modalu
@@ -91,34 +91,49 @@
                     return;
                 }
 
-                // Sprawdź czy pola już istnieją (żeby nie duplikować)
-                if (self.$form.find('.cake-portion-selector').length > 0) {
-                    self.updateFormData();
+                // Znajdź istniejący select z porcjami
+                self.$portionSelect = self.$form.find('select[name="ilosc-porcji"]');
+
+                if (!self.$portionSelect.length) {
+                    console.error('Nie znaleziono pola ilosc-porcji');
                     return;
                 }
 
-                // Znajdź miejsce do wstawienia pól (po polu z nazwą tortu)
-                var $nameField = self.$form.find('input[name="nazwa_tortu"]').closest('p');
-
-                if (!$nameField.length) {
-                    console.warn('Nie znaleziono pola nazwa_tortu, dodaję na początku formularza');
-                    $nameField = self.$form.find('p').first();
+                // Sprawdź czy pole ceny już istnieje (żeby nie duplikować)
+                if (self.$form.find('.cake-price-display').length > 0) {
+                    self.$priceDisplay = self.$form.find('#cake-final-price');
+                    self.updateFormData();
+                    self.bindPortionChange();
+                    self.updatePrice();
+                    return;
                 }
 
-                // Wygeneruj HTML dla pól
-                var fieldsHTML = self.generateFormFieldsHTML();
+                // Dodaj pole ceny obok selecta porcji
+                var $portionRow = self.$portionSelect.closest('.col-sm-2');
 
-                // Wstaw pola po polu nazwa_tortu
-                $nameField.after(fieldsHTML);
+                if ($portionRow.length) {
+                    // Wstaw pole ceny w tym samym row
+                    var priceHTML = '<div class="col-sm-3 cake-price-display">';
+                    priceHTML += '<label>Cena</label>';
+                    priceHTML += '<input type="text" id="cake-final-price" name="final-price" class="wpcf7-form-control wpcf7-text" readonly value="" style="font-weight:bold; color:#e16ca1;" />';
+                    priceHTML += '</div>';
 
-                // Zapisz referencje do pól
-                self.$portionSelect = self.$form.find('#cake-portion-size');
+                    $portionRow.after(priceHTML);
+                }
+
+                // Zapisz referencję do pola ceny
                 self.$priceDisplay = self.$form.find('#cake-final-price');
 
+                // Dodaj ukryte pola z danymi
+                var hiddenHTML = '';
+                hiddenHTML += '<input type="hidden" name="cake-base-price" id="cake-base-price" value="' + self.basePrice + '" />';
+                hiddenHTML += '<input type="hidden" name="cake-portion-selected" id="cake-portion-selected" value="" />';
+                hiddenHTML += '<input type="hidden" name="cake-price-final" id="cake-price-final" value="" />';
+
+                self.$form.append(hiddenHTML);
+
                 // Bindowanie eventów dla selecta
-                self.$portionSelect.on('change', function() {
-                    self.updatePrice();
-                });
+                self.bindPortionChange();
 
                 // Inicjalna kalkulacja ceny
                 self.updateFormData();
@@ -128,48 +143,23 @@
         },
 
         /**
-         * Generowanie HTML dla pól formularza
+         * Bindowanie zmiany wielkości
          */
-        generateFormFieldsHTML: function() {
+        bindPortionChange: function() {
             var self = this;
-            var html = '';
 
-            // Pole wyboru wielkości tortu
-            html += '<p class="cake-portion-selector">';
-            html += '<label for="cake-portion-size">Wielkość tortu <span class="required">*</span></label>';
-            html += '<span class="wpcf7-form-control-wrap portion-size">';
-            html += '<select id="cake-portion-size" name="portion-size" class="wpcf7-form-control wpcf7-select wpcf7-validates-as-required" required>';
-            html += '<option value="">-- Wybierz wielkość --</option>';
+            self.$portionSelect.on('change', function() {
+                var selectedValue = $(this).val();
 
-            // Opcje wielkości
-            if (self.pricingData && self.pricingData.prices) {
-                self.pricingData.prices.forEach(function(item, index) {
-                    var portionLabel = item.portions + ' porcji';
-                    var priceLabel = self.formatPrice(item.price);
-                    html += '<option value="' + index + '" data-price="' + item.price + '">';
-                    html += portionLabel + ' - ' + priceLabel;
-                    html += '</option>';
-                });
-            }
-
-            html += '</select>';
-            html += '</span>';
-            html += '</p>';
-
-            // Pole wyświetlania ceny końcowej (read-only)
-            html += '<p class="cake-price-display">';
-            html += '<label for="cake-final-price">Cena końcowa</label>';
-            html += '<span class="wpcf7-form-control-wrap final-price">';
-            html += '<input type="text" id="cake-final-price" name="final-price" class="wpcf7-form-control wpcf7-text" readonly value="" />';
-            html += '</span>';
-            html += '</p>';
-
-            // Ukryte pola z danymi
-            html += '<input type="hidden" name="cake-base-price" id="cake-base-price" value="' + self.basePrice + '" />';
-            html += '<input type="hidden" name="cake-portion-selected" id="cake-portion-selected" value="" />';
-            html += '<input type="hidden" name="cake-price-final" id="cake-price-final" value="" />';
-
-            return html;
+                // Jeśli wybrano "inna", nie pokazuj ceny
+                if (selectedValue === 'inna') {
+                    self.$priceDisplay.val('');
+                    self.$form.find('#cake-portion-selected').val('');
+                    self.$form.find('#cake-price-final').val('');
+                } else {
+                    self.updatePrice();
+                }
+            });
         },
 
         /**
@@ -182,9 +172,26 @@
                 return;
             }
 
-            var selectedOption = self.$portionSelect.find('option:selected');
-            var price = parseInt(selectedOption.data('price')) || 0;
-            var portionText = selectedOption.text();
+            var selectedPortion = self.$portionSelect.val();
+
+            // Jeśli wybrano "inna", nie pokazuj ceny
+            if (selectedPortion === 'inna' || !selectedPortion) {
+                self.$priceDisplay.val('');
+                return;
+            }
+
+            // Znajdź cenę dla wybranej wielkości
+            var price = 0;
+            var portionText = selectedPortion + ' porcji';
+
+            if (self.pricingData && self.pricingData.prices) {
+                for (var i = 0; i < self.pricingData.prices.length; i++) {
+                    if (self.pricingData.prices[i].portions == selectedPortion) {
+                        price = self.pricingData.prices[i].price;
+                        break;
+                    }
+                }
+            }
 
             if (price > 0) {
                 self.$priceDisplay.val(self.formatPrice(price));
@@ -193,7 +200,7 @@
                 self.$form.find('#cake-portion-selected').val(portionText);
                 self.$form.find('#cake-price-final').val(price);
             } else {
-                self.$priceDisplay.val('');
+                self.$priceDisplay.val('Brak ceny');
                 self.$form.find('#cake-portion-selected').val('');
                 self.$form.find('#cake-price-final').val('');
             }

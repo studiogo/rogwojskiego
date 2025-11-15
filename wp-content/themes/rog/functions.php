@@ -541,21 +541,4 @@ function get_all_cake_prices($post_id) {
 	return $prices;
 }
 
-/**
- * Generuje opcje grup cenowych (120, 130, 140... 320 zł)
- * @param int $start Cena początkowa
- * @param int $end Cena końcowa
- * @param int $step Krok (co ile zł)
- * @return array Tablica z opcjami cen
- */
-function generate_price_groups($start = 120, $end = 320, $step = 10) {
-	$groups = array();
-
-	for( $i = $start; $i <= $end; $i += $step ) {
-		$groups[$i] = $i . ' zł';
-	}
-
-	return $groups;
-}
-
 ?>

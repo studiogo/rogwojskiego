@@ -371,7 +371,7 @@ add_filter('acf/update_value', 'auto_regenerate_price_groups', 10, 3);
  * Wykonaj regenerację po zapisaniu opcji
  */
 function execute_price_groups_regeneration( $post_id ) {
-	if( $post_id === 'options' && get_transient('regenerate_price_groups') ) {
+	if( $post_id === 'option' && get_transient('regenerate_price_groups') ) {
 		generate_price_groups();
 		delete_transient('regenerate_price_groups');
 	}

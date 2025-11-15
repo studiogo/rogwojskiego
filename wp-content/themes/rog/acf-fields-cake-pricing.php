@@ -25,7 +25,7 @@ acf_add_local_field_group(array(
 			'required' => 1,
 			'default_value' => 120,
 			'min' => 0,
-			'step' => 10,
+			'step' => 1,
 			'append' => 'zł',
 		),
 		array(
@@ -91,7 +91,7 @@ acf_add_local_field_group(array(
 					'instructions' => 'Cena startowa dla tortów z tej grupy',
 					'required' => 1,
 					'min' => 0,
-					'step' => 10,
+					'step' => 1,
 					'append' => 'zł',
 				),
 			),

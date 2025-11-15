@@ -682,6 +682,9 @@ add_filter( 'acf/load_field/key=field_assignments_table', 'populate_assignments_
  * Pobierz nazwę grupy po indeksie
  */
 function get_group_name_by_index( $group_index ) {
+	// Konwertuj na int (może być string z ACF)
+	$group_index = intval( $group_index );
+
 	if( have_rows('price_groups', 'option') ) {
 		$index = 0;
 		while( have_rows('price_groups', 'option') ) {

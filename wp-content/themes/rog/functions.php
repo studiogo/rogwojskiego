@@ -650,7 +650,7 @@ function populate_assignments_table( $field ) {
 			$group_labels = array();
 			foreach( $group_counts as $group_index => $count ) {
 				$group_name = get_group_name_by_index( $group_index );
-				$group_labels[] = $group_name . ' (' . $count . ')';
+				$group_labels[] = $group_name; // Bez liczności - jest w drugiej kolumnie
 			}
 			$html .= implode( ', ', $group_labels );
 		}
@@ -661,8 +661,21 @@ function populate_assignments_table( $field ) {
 		// Akcje
 		$html .= '<td>';
 		if( !empty($group_counts) ) {
-			$html .= '<button class="button button-small manage-category-assignment" data-category-id="' . $category->term_id . '" data-action="change">Zmień grupę</button> ';
-			$html .= '<button class="button button-small button-link-delete manage-category-assignment" data-category-id="' . $category->term_id . '" data-action="remove">Usuń przypisanie</button>';
+			// Dropdown do zmiany grupy
+			$html .= '<select class="change-group-select" data-category-id="' . $category->term_id . '" style="margin-bottom: 5px;">';
+			$html .= '<option value="">-- Zmień grupę --</option>';
+			if( have_rows('price_groups', 'option') ) {
+				$idx = 0;
+				while( have_rows('price_groups', 'option') ) {
+					the_row();
+					$gname = get_sub_field('group_name');
+					$gprice = get_sub_field('base_price');
+					$html .= '<option value="' . $idx . '">' . $gname . ' (' . $gprice . ' zł)</option>';
+					$idx++;
+				}
+			}
+			$html .= '</select><br>';
+			$html .= '<button class="button button-small button-link-delete manage-category-remove" data-category-id="' . $category->term_id . '">Usuń przypisanie</button>';
 		} else {
 			$html .= '<span style="color: #999;">—</span>';
 		}
@@ -679,7 +692,7 @@ function populate_assignments_table( $field ) {
 add_filter( 'acf/load_field/key=field_assignments_table', 'populate_assignments_table' );
 
 /**
- * Pobierz nazwę grupy po indeksie
+ * Pobierz nazwę grupy i cenę po indeksie
  */
 function get_group_name_by_index( $group_index ) {
 	// Konwertuj na int (może być string z ACF)
@@ -690,7 +703,9 @@ function get_group_name_by_index( $group_index ) {
 		while( have_rows('price_groups', 'option') ) {
 			the_row();
 			if( $index == $group_index ) {
-				return get_sub_field('group_name');
+				$name = get_sub_field('group_name');
+				$price = get_sub_field('base_price');
+				return $name . ' (' . $price . ' zł)';
 			}
 			$index++;
 		}
@@ -797,79 +812,77 @@ function enqueue_bulk_assignment_script() {
 				});
 			});
 
-			// Zarządzanie istniejącymi przypisaniami
-			$('.manage-category-assignment').on('click', function() {
+			// Zmiana grupy przez dropdown
+			$('.change-group-select').on('change', function() {
 				var categoryId = $(this).data('category-id');
-				var action = $(this).data('action');
+				var newGroup = $(this).val();
 
-				if( action === 'remove' ) {
-					if( !confirm('Czy na pewno chcesz usunąć przypisanie grupy dla wszystkich produktów w tej kategorii?') ) {
-						return;
-					}
-
-					$('#manage-assignment-result').html('<div class="notice notice-info"><p>Usuwam przypisanie...</p></div>');
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'remove_category_assignment',
-							category_id: categoryId,
-						},
-						success: function(response) {
-							if( response.success ) {
-								$('#manage-assignment-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
-								setTimeout(function() {
-									location.reload();
-								}, 1000);
-							} else {
-								$('#manage-assignment-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
-							}
-						},
-						error: function() {
-							$('#manage-assignment-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
-						}
-					});
-				} else if( action === 'change' ) {
-					// Pokaż prompt do wyboru nowej grupy
-					var newGroup = prompt('Wybierz numer grupy (0-20) do której chcesz przypisać wszystkie produkty z tej kategorii:');
-
-					if( newGroup === null ) {
-						return; // Anulowano
-					}
-
-					newGroup = parseInt(newGroup);
-
-					if( isNaN(newGroup) || newGroup < 0 ) {
-						alert('Podaj prawidłowy numer grupy (0-20)');
-						return;
-					}
-
-					$('#manage-assignment-result').html('<div class="notice notice-info"><p>Zmieniam grupę...</p></div>');
-
-					$.ajax({
-						url: ajaxurl,
-						type: 'POST',
-						data: {
-							action: 'bulk_assign_cakes',
-							category_id: categoryId,
-							group_index: newGroup,
-						},
-						success: function(response) {
-							if( response.success ) {
-								$('#manage-assignment-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
-								setTimeout(function() {
-									location.reload();
-								}, 1000);
-							} else {
-								$('#manage-assignment-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
-							}
-						},
-						error: function() {
-							$('#manage-assignment-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
-						}
-					});
+				if( !newGroup ) {
+					return; // Nie wybrano grupy
 				}
+
+				if( !confirm('Czy na pewno chcesz zmienić grupę dla wszystkich produktów w tej kategorii?') ) {
+					$(this).val(''); // Reset dropdown
+					return;
+				}
+
+				$('#manage-assignment-result').html('<div class="notice notice-info"><p>Zmieniam grupę...</p></div>');
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'bulk_assign_cakes',
+						category_id: categoryId,
+						group_index: newGroup,
+					},
+					success: function(response) {
+						if( response.success ) {
+							$('#manage-assignment-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+							setTimeout(function() {
+								location.reload();
+							}, 1000);
+						} else {
+							$('#manage-assignment-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+						}
+					},
+					error: function() {
+						$('#manage-assignment-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
+					}
+				});
+			});
+
+			// Usuń przypisanie
+			$('.manage-category-remove').on('click', function() {
+				var categoryId = $(this).data('category-id');
+
+				if( !confirm('Czy na pewno chcesz usunąć przypisanie grupy dla wszystkich produktów w tej kategorii?') ) {
+					return;
+				}
+
+				$('#manage-assignment-result').html('<div class="notice notice-info"><p>Usuwam przypisanie...</p></div>');
+
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'remove_category_assignment',
+						category_id: categoryId,
+					},
+					success: function(response) {
+						if( response.success ) {
+							$('#manage-assignment-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+							setTimeout(function() {
+								location.reload();
+							}, 1000);
+						} else {
+							$('#manage-assignment-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+						}
+					},
+					error: function() {
+						$('#manage-assignment-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
+					}
+				});
 			});
 		});
 		</script>
@@ -916,28 +929,49 @@ function render_bulk_assign_page() {
 	// Przetwórz formularz jeśli został wysłany
 	if( isset($_POST['do_bulk_assign']) && isset($_POST['bulk_assign_nonce']) ) {
 		if( wp_verify_nonce( $_POST['bulk_assign_nonce'], 'bulk_assign_group' ) ) {
-			$group_index = intval( $_POST['group_index'] );
+			$group_index = isset($_POST['group_index']) ? intval( $_POST['group_index'] ) : null;
 
-			foreach( $post_ids as $post_id ) {
-				update_field( 'enable_pricing', 1, $post_id );
-				update_field( 'price_mode', 'automatic', $post_id );
-				update_field( 'price_group', $group_index, $post_id );
+			if( $group_index !== null ) {
+				foreach( $post_ids as $post_id ) {
+					update_field( 'enable_pricing', 1, $post_id );
+					update_field( 'price_mode', 'automatic', $post_id );
+					update_field( 'price_group', $group_index, $post_id );
+				}
+
+				// Przekieruj z komunikatem sukcesu
+				wp_redirect( add_query_arg( array(
+					'post_type' => 'produkt',
+					'bulk_assigned' => $count,
+				), admin_url( 'edit.php' ) ) );
+				exit;
 			}
-
-			// Przekieruj z komunikatem sukcesu
-			wp_redirect( add_query_arg( array(
-				'post_type' => 'produkt',
-				'bulk_assigned' => $count,
-			), admin_url( 'edit.php' ) ) );
-			exit;
 		}
+	}
+
+	// Pobierz informacje o wybranych produktach
+	$products = array();
+	foreach( $post_ids as $post_id ) {
+		$products[] = array(
+			'id' => $post_id,
+			'title' => get_the_title( $post_id ),
+		);
 	}
 
 	?>
 	<div class="wrap">
 		<h1>Przypisz <?php echo $count; ?> tortów do grupy cenowej</h1>
 
-		<form method="post" action="">
+		<!-- Lista wybranych produktów -->
+		<div style="background: #f0f0f1; padding: 15px; margin: 20px 0; border-left: 4px solid #2271b1;">
+			<h2 style="margin-top: 0;">Wybrane produkty:</h2>
+			<ul style="margin: 0; padding-left: 20px;">
+				<?php foreach( $products as $product ): ?>
+					<li><strong><?php echo esc_html( $product['title'] ); ?></strong> (ID: <?php echo $product['id']; ?>)</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+
+		<form method="post" action="<?php echo esc_url( add_query_arg( 'post_ids', implode(',', $post_ids), admin_url('admin.php?page=bulk-assign-price-group') ) ); ?>">
 			<?php wp_nonce_field( 'bulk_assign_group', 'bulk_assign_nonce' ); ?>
 
 			<table class="form-table">

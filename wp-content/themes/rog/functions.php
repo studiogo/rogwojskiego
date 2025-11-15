@@ -348,35 +348,26 @@ function generate_price_groups() {
 }
 
 /**
- * Auto-regeneruj grupy przy zapisywaniu opcji
+ * Auto-regeneruj grupy po zapisaniu Options Page
  */
-function auto_regenerate_price_groups( $value, $post_id, $field ) {
-	// Tylko dla options page z cenami tortów
-	if( $post_id !== 'option' ) {
-		return $value;
+function auto_regenerate_price_groups( $post_id ) {
+	// Sprawdź czy to Options Page (ACF używa 'options' lub 'option')
+	if( $post_id !== 'options' && $post_id !== 'option' ) {
+		return;
 	}
 
-	// Jeśli zmieniono base_price, step lub number_of_groups
-	$trigger_fields = array('base_group_price', 'price_step', 'number_of_groups');
-	if( in_array($field['name'], $trigger_fields) ) {
-		// Ustaw flagę do regeneracji (wykonamy po zapisaniu wszystkich pól)
-		set_transient('regenerate_price_groups', true, 60);
-	}
+	// Sprawdź czy któreś z pól trigger się zmieniło
+	$base_price = get_field('base_group_price', 'option');
+	$step = get_field('price_step', 'option');
+	$count = get_field('number_of_groups', 'option');
 
-	return $value;
-}
-add_filter('acf/update_value', 'auto_regenerate_price_groups', 10, 3);
-
-/**
- * Wykonaj regenerację po zapisaniu opcji
- */
-function execute_price_groups_regeneration( $post_id ) {
-	if( $post_id === 'option' && get_transient('regenerate_price_groups') ) {
+	// Jeśli któreś pole ma wartość, oznacza to że zapisaliśmy opcje
+	if( $base_price || $step || $count ) {
+		// Regeneruj grupy
 		generate_price_groups();
-		delete_transient('regenerate_price_groups');
 	}
 }
-add_action('acf/save_post', 'execute_price_groups_regeneration', 20);
+add_action('acf/save_post', 'auto_regenerate_price_groups', 20);
 
 /**
  * Ręczne wymuszenie inicjalizacji domyślnych porcji

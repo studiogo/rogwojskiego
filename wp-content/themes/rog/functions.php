@@ -584,13 +584,23 @@ function enqueue_bulk_assignment_script() {
 		?>
 		<script>
 		jQuery(document).ready(function($) {
+			console.log('Bulk assignment script loaded');
+
 			$('#bulk-assign-cakes').on('click', function() {
-				// Użyj selektorów data-key dla pól ACF
-				var categoryId = $('select[data-key="field_bulk_category"]').val();
-				var groupIndex = $('select[data-key="field_bulk_target_group"]').val();
+				console.log('Button clicked');
+
+				// Spróbuj różnych selektorów dla pól ACF
+				var categoryId = $('select[name*="bulk_category"]').val() ||
+				                 $('#acf-field_bulk_category').val() ||
+				                 $('[data-name="bulk_category"]').val();
+
+				var groupIndex = $('select[name*="bulk_target_group"]').val() ||
+				                 $('#acf-field_bulk_target_group').val() ||
+				                 $('[data-name="bulk_target_group"]').val();
 
 				console.log('Category ID:', categoryId);
 				console.log('Group Index:', groupIndex);
+				console.log('All selects on page:', $('select').length);
 
 				if( !categoryId || !groupIndex ) {
 					$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wybierz kategorię i grupę cenową!</p></div>');
@@ -608,14 +618,16 @@ function enqueue_bulk_assignment_script() {
 						group_index: groupIndex,
 					},
 					success: function(response) {
+						console.log('AJAX response:', response);
 						if( response.success ) {
 							$('#bulk-assign-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
 						} else {
 							$('#bulk-assign-result').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
 						}
 					},
-					error: function() {
-						$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wystąpił błąd</p></div>');
+					error: function(xhr, status, error) {
+						console.log('AJAX error:', error);
+						$('#bulk-assign-result').html('<div class="notice notice-error"><p>Wystąpił błąd: ' + error + '</p></div>');
 					}
 				});
 			});
@@ -657,13 +669,13 @@ add_filter( 'handle_bulk_actions-edit-produkt', 'handle_bulk_action_assign_price
  * Pokaż formularz wyboru grupy dla bulk action
  */
 function show_bulk_assign_form() {
-	// Tylko na stronie ustawień Ceny tortów
-	$screen = get_current_screen();
-	if( !$screen || $screen->id !== 'toplevel_page_cake-pricing-settings' ) {
+	if( !isset($_GET['bulk_assign']) || !isset($_GET['post_ids']) ) {
 		return;
 	}
 
-	if( !isset($_GET['bulk_assign']) || !isset($_GET['post_ids']) ) {
+	// Tylko na stronie ustawień Ceny tortów
+	$screen = get_current_screen();
+	if( !$screen || $screen->id !== 'toplevel_page_cake-pricing-settings' ) {
 		return;
 	}
 
@@ -671,8 +683,8 @@ function show_bulk_assign_form() {
 	$count = count( $post_ids );
 
 	?>
-	<div class="notice notice-info" style="padding:20px; margin: 20px 0;">
-		<h2>Przypisz <?php echo $count; ?> tortów do grupy cenowej</h2>
+	<div class="wrap" style="background: #fff; padding: 20px; margin: 20px 0 20px 0; border-left: 4px solid #2271b1;">
+		<h2 style="margin-top: 0;">Przypisz <?php echo $count; ?> tortów do grupy cenowej</h2>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'bulk_assign_group', 'bulk_assign_nonce' ); ?>
 			<input type="hidden" name="post_ids" value="<?php echo esc_attr( $_GET['post_ids'] ); ?>">
@@ -681,7 +693,7 @@ function show_bulk_assign_form() {
 				<tr>
 					<th><label>Grupa cenowa</label></th>
 					<td>
-						<select name="group_index" required>
+						<select name="group_index" required style="min-width: 300px;">
 							<option value="">-- Wybierz grupę --</option>
 							<?php
 							if( have_rows('price_groups', 'option') ) {
@@ -707,7 +719,7 @@ function show_bulk_assign_form() {
 	</div>
 	<?php
 }
-add_action( 'admin_notices', 'show_bulk_assign_form' );
+add_action( 'acf/input/admin_head', 'show_bulk_assign_form' );
 
 /**
  * Przetwórz formularz bulk assign

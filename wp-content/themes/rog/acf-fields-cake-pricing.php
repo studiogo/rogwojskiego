@@ -12,14 +12,49 @@ if( function_exists('acf_add_local_field_group') ):
 
 acf_add_local_field_group(array(
 	'key' => 'group_cake_pricing_global',
-	'title' => 'Globalne ustawienia wielkości tortów',
+	'title' => 'Globalne ustawienia cen tortów',
 	'fields' => array(
+		// GRUPY CENOWE
+		array(
+			'key' => 'field_price_groups',
+			'label' => 'Grupy cenowe',
+			'name' => 'price_groups',
+			'type' => 'repeater',
+			'instructions' => 'Zdefiniuj grupy cenowe dla tortów. Później przypiszesz torty do odpowiednich grup.',
+			'required' => 0,
+			'min' => 1,
+			'layout' => 'table',
+			'button_label' => 'Dodaj grupę cenową',
+			'sub_fields' => array(
+				array(
+					'key' => 'field_group_name',
+					'label' => 'Nazwa grupy',
+					'name' => 'group_name',
+					'type' => 'text',
+					'instructions' => 'np. "Grupa 1", "Grupa Standard"',
+					'required' => 1,
+					'placeholder' => 'Grupa 1',
+				),
+				array(
+					'key' => 'field_group_price',
+					'label' => 'Cena bazowa (zł)',
+					'name' => 'base_price',
+					'type' => 'number',
+					'instructions' => 'Cena startowa dla tortów z tej grupy',
+					'required' => 1,
+					'min' => 0,
+					'step' => 10,
+					'append' => 'zł',
+				),
+			),
+		),
+		// WIELKOŚCI PORCJI
 		array(
 			'key' => 'field_portion_sizes',
 			'label' => 'Wielkości porcji',
 			'name' => 'portion_sizes',
 			'type' => 'repeater',
-			'instructions' => 'Dodaj dostępne wielkości tortów (porcje) i ich dopłaty. Te ustawienia będą używane dla wszystkich tortów z automatyczną ceną.',
+			'instructions' => 'Dodaj dostępne wielkości tortów (porcje) i ich dopłaty.',
 			'required' => 0,
 			'min' => 1,
 			'layout' => 'table',
@@ -30,7 +65,7 @@ acf_add_local_field_group(array(
 					'label' => 'Ilość porcji',
 					'name' => 'portions',
 					'type' => 'number',
-					'instructions' => 'np. 12, 15, 18, 20',
+					'instructions' => 'np. 12, 15, 20, 25, 30',
 					'required' => 1,
 					'min' => 1,
 					'step' => 1,
@@ -40,7 +75,7 @@ acf_add_local_field_group(array(
 					'label' => 'Dopłata (zł)',
 					'name' => 'surcharge',
 					'type' => 'number',
-					'instructions' => 'Dopłata do ceny bazowej (np. 40, 60, 80 zł)',
+					'instructions' => 'Dopłata do ceny bazowej',
 					'required' => 1,
 					'min' => 0,
 					'step' => 1,
@@ -54,15 +89,14 @@ acf_add_local_field_group(array(
 			'name' => 'pricing_help',
 			'type' => 'message',
 			'message' => '<strong>Jak to działa?</strong><br>
-				1. Dodaj wielkości porcji (np. 12, 15, 18, 20)<br>
-				2. Dla każdej wielkości ustaw dopłatę do ceny bazowej<br>
-				3. Przy edycji tortu wybierz cenę bazową (np. 120 zł)<br>
-				4. Finalna cena = Cena bazowa + Dopłata za wielkość<br><br>
+				1. Zdefiniuj grupy cenowe (np. Grupa 1: 120 zł, Grupa 2: 130 zł)<br>
+				2. Dodaj wielkości porcji i dopłaty (np. 12 porcji: +40 zł)<br>
+				3. Przy edycji tortu przypisz go do grupy cenowej<br>
+				4. Finalna cena = Cena z grupy + Dopłata za wielkość<br><br>
 				<strong>Przykład:</strong><br>
-				Cena bazowa tortu: 120 zł<br>
-				12 porcji (dopłata 40 zł) = 160 zł<br>
-				15 porcji (dopłata 60 zł) = 180 zł<br>
-				18 porcji (dopłata 80 zł) = 200 zł',
+				Tort w Grupie 1 (120 zł):<br>
+				• 12 porcji (dopłata 40 zł) = 160 zł<br>
+				• 15 porcji (dopłata 60 zł) = 180 zł',
 			'new_lines' => '',
 			'esc_html' => 0,
 		),
@@ -125,38 +159,15 @@ acf_add_local_field_group(array(
 			),
 		),
 
-		// TRYB AUTOMATYCZNY - Cena bazowa
+		// TRYB AUTOMATYCZNY - Wybór grupy cenowej
 		array(
-			'key' => 'field_base_price',
-			'label' => 'Cena bazowa',
-			'name' => 'base_price',
+			'key' => 'field_price_group',
+			'label' => 'Grupa cenowa',
+			'name' => 'price_group',
 			'type' => 'select',
-			'instructions' => 'Wybierz cenę bazową dla tego tortu. Finalna cena = cena bazowa + dopłata za wielkość',
+			'instructions' => 'Wybierz grupę cenową dla tego tortu. Grupy zarządzasz w "Ceny tortów".',
 			'required' => 1,
-			'choices' => array(
-				'120' => '120 zł',
-				'130' => '130 zł',
-				'140' => '140 zł',
-				'150' => '150 zł',
-				'160' => '160 zł',
-				'170' => '170 zł',
-				'180' => '180 zł',
-				'190' => '190 zł',
-				'200' => '200 zł',
-				'210' => '210 zł',
-				'220' => '220 zł',
-				'230' => '230 zł',
-				'240' => '240 zł',
-				'250' => '250 zł',
-				'260' => '260 zł',
-				'270' => '270 zł',
-				'280' => '280 zł',
-				'290' => '290 zł',
-				'300' => '300 zł',
-				'310' => '310 zł',
-				'320' => '320 zł',
-			),
-			'default_value' => '120',
+			'choices' => array(), // Wypełniane dynamicznie
 			'allow_null' => 0,
 			'ui' => 1,
 			'ajax' => 0,
@@ -259,5 +270,29 @@ acf_add_local_field_group(array(
 	'label_placement' => 'top',
 	'instruction_placement' => 'label',
 ));
+
+/**
+ * Dynamicznie wypełnij dropdown grup cenowych
+ */
+function acf_load_price_group_choices( $field ) {
+	$field['choices'] = array();
+
+	if( have_rows('price_groups', 'option') ) {
+		while( have_rows('price_groups', 'option') ) {
+			the_row();
+			$group_name = get_sub_field('group_name');
+			$base_price = get_sub_field('base_price');
+			$index = get_row_index() - 1;
+			$field['choices'][$index] = $group_name . ' (' . $base_price . ' zł)';
+		}
+	}
+
+	if( empty($field['choices']) ) {
+		$field['choices'][''] = 'Brak grup - dodaj w "Ceny tortów"';
+	}
+
+	return $field;
+}
+add_filter('acf/load_field/key=field_price_group', 'acf_load_price_group_choices');
 
 endif;

@@ -291,15 +291,27 @@ if( function_exists('acf_add_options_page') ) {
 }
 
 /**
- * Inicjalizuje domyślne wielkości porcji przy pierwszym uruchomieniu
+ * Inicjalizuje domyślne grupy cenowe i wielkości porcji
  */
-function init_default_portion_sizes() {
-	// Sprawdź czy wielkości już istnieją i czy mają jakieś elementy
-	$existing = get_field('portion_sizes', 'option');
+function init_default_pricing_data() {
+	// GRUPY CENOWE
+	$existing_groups = get_field('price_groups', 'option');
+	if( !is_array($existing_groups) || count($existing_groups) === 0 ) {
+		// Domyślne grupy: Grupa 1-21 (120 zł - 320 zł, co 10 zł)
+		$default_groups = array();
+		for( $i = 0; $i < 21; $i++ ) {
+			$price = 120 + ($i * 10);
+			$default_groups[] = array(
+				'group_name' => 'Grupa ' . ($i + 1),
+				'base_price' => $price,
+			);
+		}
+		update_field('price_groups', $default_groups, 'option');
+	}
 
-	// Inicjalizuj tylko jeśli pole jest puste LUB nie jest tablicą LUB tablica nie ma elementów
-	if( !is_array($existing) || count($existing) === 0 ) {
-		// Domyślne wielkości i dopłaty
+	// WIELKOŚCI PORCJI
+	$existing_portions = get_field('portion_sizes', 'option');
+	if( !is_array($existing_portions) || count($existing_portions) === 0 ) {
 		$default_portions = array(
 			array('portions' => 12, 'surcharge' => 40),
 			array('portions' => 15, 'surcharge' => 60),
@@ -307,12 +319,10 @@ function init_default_portion_sizes() {
 			array('portions' => 25, 'surcharge' => 100),
 			array('portions' => 30, 'surcharge' => 120),
 		);
-
-		// Zapisz domyślne wartości
 		update_field('portion_sizes', $default_portions, 'option');
 	}
 }
-add_action('acf/init', 'init_default_portion_sizes');
+add_action('acf/init', 'init_default_pricing_data');
 
 /**
  * Ręczne wymuszenie inicjalizacji domyślnych porcji
@@ -355,6 +365,25 @@ function get_portion_sizes() {
 }
 
 /**
+ * Pobiera cenę z grupy cenowej
+ * @param int $group_index Indeks grupy (0, 1, 2...)
+ * @return int|false Cena bazowa z grupy lub false
+ */
+function get_price_from_group($group_index) {
+	if( have_rows('price_groups', 'option') ) {
+		$index = 0;
+		while( have_rows('price_groups', 'option') ) {
+			the_row();
+			if( $index == $group_index ) {
+				return get_sub_field('base_price');
+			}
+			$index++;
+		}
+	}
+	return false;
+}
+
+/**
  * Pobiera cenę bazową tortu
  * @param int $post_id ID posta produktu
  * @return int|false Cena bazowa lub false jeśli nie ustawiona
@@ -368,9 +397,12 @@ function get_cake_base_price($post_id) {
 
 	$price_mode = get_field('price_mode', $post_id);
 
-	// Tryb automatyczny
+	// Tryb automatyczny - pobierz cenę z grupy
 	if( $price_mode === 'automatic' ) {
-		return get_field('base_price', $post_id);
+		$group_index = get_field('price_group', $post_id);
+		if( $group_index !== false && $group_index !== '' ) {
+			return get_price_from_group($group_index);
+		}
 	}
 
 	// Tryb ręczny - zwróć najniższą cenę
@@ -394,12 +426,13 @@ function get_cake_base_price($post_id) {
 function calculate_final_price($post_id, $portion_index) {
 	$price_mode = get_field('price_mode', $post_id);
 
-	// Tryb automatyczny: cena bazowa + dopłata
+	// Tryb automatyczny: cena z grupy + dopłata
 	if( $price_mode === 'automatic' ) {
-		$base_price = get_field('base_price', $post_id);
+		$group_index = get_field('price_group', $post_id);
+		$base_price = get_price_from_group($group_index);
 		$portions = get_portion_sizes();
 
-		if( isset($portions[$portion_index]) ) {
+		if( $base_price && isset($portions[$portion_index]) ) {
 			$surcharge = $portions[$portion_index]['surcharge'];
 			return $base_price + $surcharge;
 		}
@@ -427,13 +460,16 @@ function get_all_cake_prices($post_id) {
 	$portions = get_portion_sizes();
 
 	if( $price_mode === 'automatic' ) {
-		$base_price = get_field('base_price', $post_id);
+		$group_index = get_field('price_group', $post_id);
+		$base_price = get_price_from_group($group_index);
 
-		foreach( $portions as $index => $portion ) {
-			$prices[] = array(
-				'portions' => $portion['portions'],
-				'price' => $base_price + $portion['surcharge'],
-			);
+		if( $base_price ) {
+			foreach( $portions as $index => $portion ) {
+				$prices[] = array(
+					'portions' => $portion['portions'],
+					'price' => $base_price + $portion['surcharge'],
+				);
+			}
 		}
 	} elseif( $price_mode === 'manual' ) {
 		$manual_prices = get_field('manual_prices', $post_id);
@@ -441,7 +477,7 @@ function get_all_cake_prices($post_id) {
 		if( $manual_prices && is_array($manual_prices) ) {
 			foreach( $manual_prices as $index => $manual_price ) {
 				$prices[] = array(
-					'portions' => $portions[$index]['portions'] ?? '',
+					'portions' => $manual_price['portions'] ?? '',
 					'price' => $manual_price['price'] ?? 0,
 				);
 			}
